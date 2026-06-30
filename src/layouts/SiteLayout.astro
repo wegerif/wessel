@@ -37,17 +37,19 @@ const { title, description } = Astro.props;
 		<div class="nebula-overlay" aria-hidden="true"></div>
 		<div class="scanline-overlay" aria-hidden="true"></div>
 		<header class="site-header">
-			<a class="brand" href="/">Wessel Wegerif</a>
-			<div class="header-actions">
-				<nav>
-					<a href="/">Home</a>
-					<a href="/about">About</a>
-					<a href="/posts">Posts</a>
-					<a href="/style-lab">Style Lab</a>
-					<a href="/contact">Contact</a>
-				</nav>
-				<CarSelector client:load />
-				<ThemeToggle client:load />
+			<div class="header-inner">
+				<a class="brand" href="/">Wessel Wegerif</a>
+				<div class="header-actions">
+					<nav>
+						<a href="/">Home</a>
+						<a href="/about">About</a>
+						<a href="/posts">Posts</a>
+						<a href="/style-lab">Style Lab</a>
+						<a href="/contact">Contact</a>
+					</nav>
+					<CarSelector client:load />
+					<ThemeToggle client:load />
+				</div>
 			</div>
 		</header>
 		<main>
@@ -64,42 +66,68 @@ const { title, description } = Astro.props;
 <style>
 	:root,
 	:root[data-theme='dark'] {
-		--bg: #06070e;
-		--bg-2: #0c1224;
-		--bg-accent-1: #2a2256;
-		--bg-accent-2: #0d2f4e;
-		--surface: rgba(17, 24, 42, 0.8);
-		--surface-strong: #131a31;
-		--panel-bg: linear-gradient(180deg, rgba(12, 18, 36, 0.92), rgba(8, 12, 24, 0.92));
-		--panel-border: rgba(125, 249, 255, 0.22);
-		--panel-hover: rgba(255, 93, 200, 0.42);
-		--text: #edf4ff;
-		--muted: #a3b2d7;
-		--accent: #7df9ff;
-		--accent-2: #ff5dc8;
+		--bg: #020b07;
+		--bg-2: #04130d;
+		--bg-accent-1: #113423;
+		--bg-accent-2: #0a263f;
+		--surface: rgba(7, 22, 14, 0.82);
+		--surface-strong: #0a1b13;
+		--panel-bg: linear-gradient(180deg, rgba(6, 22, 12, 0.95), rgba(3, 16, 7, 0.95));
+		--panel-border: rgba(137, 251, 180, 0.32);
+		--panel-hover: rgba(125, 249, 255, 0.38);
+		--text: #e6ffef;
+		--muted: #9bc1a8;
+		--accent: #89fbb4;
+		--accent-2: #7df9ff;
 		--accent-3: #ffc857;
-		--header-bg: rgba(6, 8, 18, 0.7);
-		--header-border: rgba(125, 249, 255, 0.28);
-		--overlay-opacity: 0.14;
+		--header-bg: rgba(4, 14, 9, 0.76);
+		--header-border: rgba(137, 251, 180, 0.35);
+		--header-link-bg: rgba(7, 28, 16, 0.8);
+		--header-link-border: rgba(137, 251, 180, 0.3);
+		--header-link-hover: rgba(16, 48, 28, 0.9);
+		--header-brand: #b8ffd6;
+		--font-body: 'Cascadia Code', Consolas, 'Lucida Console', monospace;
+		--font-display: 'Press Start 2P', 'Cascadia Code', Consolas, monospace;
+		--heading: #b8ffd6;
+		--cursor-dot: #e6fff0;
+		--cursor-dot-glow: rgba(137, 251, 180, 0.95);
+		--cursor-ring: rgba(137, 251, 180, 0.95);
+		--cursor-ring-glow: rgba(137, 251, 180, 0.45);
+		--cursor-ring-pressed: rgba(125, 249, 255, 0.95);
+		--cursor-ring-pressed-glow: rgba(125, 249, 255, 0.65);
+		--overlay-opacity: 0.1;
 	}
 
 	:root[data-theme='light'] {
-		--bg: #f7f8ff;
-		--bg-2: #ecf2ff;
-		--bg-accent-1: #d7c8ff;
-		--bg-accent-2: #bde8ff;
-		--surface: rgba(255, 255, 255, 0.86);
-		--surface-strong: #ffffff;
-		--panel-bg: linear-gradient(180deg, rgba(255, 255, 255, 0.94), rgba(240, 246, 255, 0.94));
-		--panel-border: rgba(55, 97, 188, 0.23);
+		--bg: #eef6ff;
+		--bg-2: #dceeff;
+		--bg-accent-1: #d6e8ff;
+		--bg-accent-2: #beddff;
+		--surface: rgba(255, 255, 255, 0.84);
+		--surface-strong: rgba(243, 249, 255, 0.96);
+		--panel-bg: linear-gradient(180deg, rgba(193, 224, 255, 0.55), rgba(68, 124, 224, 0.22));
+		--panel-border: rgba(186, 222, 255, 0.92);
 		--panel-hover: rgba(66, 132, 235, 0.42);
-		--text: #192342;
-		--muted: #3f517f;
+		--text: #16264a;
+		--muted: #3a5383;
 		--accent: #2f6ee5;
 		--accent-2: #a94de3;
 		--accent-3: #cc8a00;
-		--header-bg: rgba(255, 255, 255, 0.74);
-		--header-border: rgba(55, 97, 188, 0.25);
+		--header-bg: rgba(255, 255, 255, 0.78);
+		--header-border: rgba(186, 222, 255, 0.92);
+		--header-link-bg: rgba(255, 255, 255, 0.75);
+		--header-link-border: rgba(99, 150, 221, 0.3);
+		--header-link-hover: rgba(226, 240, 255, 0.92);
+		--header-brand: #284987;
+		--font-body: 'Segoe UI', 'Inter', Tahoma, sans-serif;
+		--font-display: 'Trebuchet MS', 'Segoe UI', sans-serif;
+		--heading: #2f58a2;
+		--cursor-dot: #ffffff;
+		--cursor-dot-glow: rgba(125, 249, 255, 0.95);
+		--cursor-ring: rgba(255, 93, 200, 0.95);
+		--cursor-ring-glow: rgba(255, 93, 200, 0.45);
+		--cursor-ring-pressed: rgba(125, 249, 255, 0.95);
+		--cursor-ring-pressed-glow: rgba(125, 249, 255, 0.65);
 		--overlay-opacity: 0.06;
 	}
 
@@ -111,12 +139,26 @@ const { title, description } = Astro.props;
 	body {
 		margin: 0;
 		min-height: 100%;
-		font-family: 'Inter', 'Segoe UI', Tahoma, sans-serif;
+		font-family: var(--font-body);
 		color: var(--text);
 		background:
 			radial-gradient(circle at 85% 5%, var(--bg-accent-1) 0%, transparent 25%),
 			radial-gradient(circle at 10% 80%, var(--bg-accent-2) 0%, transparent 35%),
 			linear-gradient(180deg, var(--bg-2) 0%, var(--bg) 65%);
+	}
+
+	h1,
+	h2,
+	h3 {
+		font-family: var(--font-display);
+		letter-spacing: 0.02em;
+		color: var(--heading);
+	}
+
+	h1 a,
+	h2 a,
+	h3 a {
+		color: inherit;
 	}
 
 	a {
@@ -137,10 +179,10 @@ const { title, description } = Astro.props;
 		width: 12px;
 		height: 12px;
 		border-radius: 999px;
-		background: #ffffff;
+		background: var(--cursor-dot);
 		box-shadow:
 			0 0 0 1px rgba(0, 0, 0, 0.55),
-			0 0 24px rgba(125, 249, 255, 0.95);
+			0 0 24px var(--cursor-dot-glow);
 		z-index: 12000;
 		pointer-events: none;
 		will-change: transform;
@@ -154,8 +196,8 @@ const { title, description } = Astro.props;
 		width: 40px;
 		height: 40px;
 		border-radius: 999px;
-		border: 2px solid rgba(255, 93, 200, 0.95);
-		box-shadow: 0 0 18px rgba(255, 93, 200, 0.45);
+		border: 2px solid var(--cursor-ring);
+		box-shadow: 0 0 18px var(--cursor-ring-glow);
 		z-index: 11999;
 		pointer-events: none;
 		will-change: transform;
@@ -167,8 +209,8 @@ const { title, description } = Astro.props;
 	}
 
 	:global(.cursor-ring.pressed) {
-		border-color: rgba(125, 249, 255, 0.95);
-		box-shadow: 0 0 24px rgba(125, 249, 255, 0.65);
+		border-color: var(--cursor-ring-pressed);
+		box-shadow: 0 0 24px var(--cursor-ring-pressed-glow);
 	}
 
 	:global(.cursor-coordinates) {
@@ -199,8 +241,8 @@ const { title, description } = Astro.props;
 		gap: 0.45rem;
 		padding: 0.45rem 0.65rem;
 		border-radius: 10px;
-		border: 1px solid var(--panel-border);
-		background: var(--surface);
+		border: 1px solid var(--header-link-border);
+		background: var(--header-link-bg);
 		color: var(--accent);
 		cursor: pointer;
 		z-index: 10042;
@@ -350,10 +392,7 @@ const { title, description } = Astro.props;
 	.site-header {
 		position: sticky;
 		top: 0;
-		display: flex;
-		align-items: center;
-		justify-content: space-between;
-		padding: 1rem clamp(1rem, 4vw, 3rem);
+		padding: 0.8rem 0;
 		backdrop-filter: blur(10px);
 		background: var(--header-bg);
 		border-bottom: 1px solid var(--header-border);
@@ -361,11 +400,22 @@ const { title, description } = Astro.props;
 		z-index: 10040;
 	}
 
+	.header-inner {
+		width: min(1120px, 92vw);
+		margin: 0 auto;
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		gap: 1rem;
+	}
+
 	.brand {
 		text-decoration: none;
 		font-weight: 700;
 		letter-spacing: 0.06em;
 		text-transform: uppercase;
+		font-family: var(--font-display);
+		color: var(--header-brand);
 	}
 
 	.header-actions {
@@ -381,18 +431,23 @@ const { title, description } = Astro.props;
 	nav {
 		display: flex;
 		gap: 1rem;
+		flex-wrap: wrap;
 	}
 
 	nav a {
 		text-decoration: none;
 		padding: 0.35rem 0.7rem;
-		border: 1px solid transparent;
+		border: 1px solid var(--header-link-border);
 		border-radius: 999px;
+		background: var(--header-link-bg);
+		transition:
+			background-color 180ms ease,
+			border-color 180ms ease;
 	}
 
 	nav a:hover {
 		border-color: var(--panel-border);
-		background: var(--surface);
+		background: var(--header-link-hover);
 	}
 
 	:global(.theme-toggle) {
@@ -403,8 +458,8 @@ const { title, description } = Astro.props;
 		width: 2.25rem;
 		height: 2.25rem;
 		border-radius: 999px;
-		border: 1px solid var(--panel-border);
-		background: var(--surface);
+		border: 1px solid var(--header-link-border);
+		background: var(--header-link-bg);
 		color: var(--accent);
 		padding: 0;
 		cursor: pointer;
@@ -444,7 +499,7 @@ const { title, description } = Astro.props;
 	main {
 		width: min(1120px, 92vw);
 		margin: 0 auto;
-		padding: 2.5rem 0 3rem;
+		padding: 2.25rem 0 3rem;
 	}
 
 	.site-footer {
@@ -474,7 +529,7 @@ const { title, description } = Astro.props;
 	}
 
 	@media (max-width: 860px) {
-		.site-header {
+		.header-inner {
 			flex-direction: column;
 			align-items: flex-start;
 			gap: 0.6rem;
@@ -486,8 +541,7 @@ const { title, description } = Astro.props;
 		}
 
 		nav {
-			gap: 0.6rem;
-			flex-wrap: wrap;
+			gap: 0.5rem;
 		}
 	}
 </style>

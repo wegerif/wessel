@@ -6,7 +6,7 @@ Custom portfolio + posts frontend built with Astro + React, with WordPress as a 
 
 - Astro for the site framework
 - React for interactive components
-- WordPress REST API for posts, pages, and legacy portfolio items
+- WordPress REST API for posts and pages
 
 ## Setup
 
@@ -20,7 +20,10 @@ npm install
 
 ```env
 WORDPRESS_API_URL=https://www.wesselwegerif.nl/wp-json/wp/v2
+WORDPRESS_CACHE_TTL_MS=120000
 ```
+
+`WORDPRESS_CACHE_TTL_MS` keeps WordPress responses in memory during the current dev/build process to speed up page-to-page navigation. Set `0` to disable caching.
 
 3. Run local dev:
 
@@ -48,10 +51,7 @@ Use `npm run dev` for local development (`localhost:4321`) or `npm run preview` 
 ## Content migration status
 
 - Home page now pulls and shows your WordPress **About** and **Contact** page copy.
-- Posts feed now combines:
-  - native WordPress `post`
-  - legacy `portfolio` custom post type (Visual Portfolio)
-- This keeps your existing portfolio work visible while you migrate to native posts.
+- Posts feed now uses native WordPress `post` content only.
 - Theme toggle is available in the top-right (sun/moon icon).
 - Custom cursor + coordinate HUD are enabled in desktop browsers.
 - Sprite-stack car selector (🚘) is in the header; selected car follows mouse and climbs road blocks.
@@ -100,7 +100,7 @@ After migration:
 
 - Your content lives in native `post`
 - You can remove Visual Portfolio later
-- This Astro frontend will still work (it already reads native posts)
+- This Astro frontend reads native posts directly
 
 ## Notes
 

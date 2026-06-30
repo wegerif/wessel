@@ -16,11 +16,7 @@ const postTitle = getPostTitleText(post);
 
 <SiteLayout title={`${postTitle} | Wessel Wegerif`} description={`Post: ${postTitle}`}>
 	<article class="post">
-		<p class="meta">
-			{new Date(post.date).toLocaleDateString('en-GB')} - {post.source === 'portfolio'
-				? 'Portfolio archive'
-				: 'WordPress post'}
-		</p>
+		<p class="meta">{new Date(post.date).toLocaleDateString('en-GB')}</p>
 		<h1>{postTitle}</h1>
 		<div class="content" set:html={post.content.rendered} />
 	</article>

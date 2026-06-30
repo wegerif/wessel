@@ -15,9 +15,7 @@ export type WordPressPage = {
 	content: { rendered: string };
 };
 
-export type SitePost = WordPressPost & {
-	source: 'post' | 'portfolio';
-};
+export type SitePost = WordPressPost;
 
 export type SitePageContent = {
 	title: string;
@@ -25,17 +23,51 @@ export type SitePageContent = {
 };
 
 const apiBase = import.meta.env.WORDPRESS_API_URL ?? 'https://www.wesselwegerif.nl/wp-json/wp/v2';
+const configuredCacheTtl = Number(import.meta.env.WORDPRESS_CACHE_TTL_MS ?? 120000);
+const wordpressCacheTtlMs = Number.isFinite(configuredCacheTtl) && configuredCacheTtl >= 0 ? configuredCacheTtl : 120000;
+const responseCache = new Map<string, { expiresAt: number; value: unknown }>();
+const inFlightRequests = new Map<string, Promise<unknown>>();
 
 async function wpFetch<T>(path: string): Promise<T> {
-	const response = await fetch(`${apiBase}${path}`, {
-		headers: { Accept: 'application/json' },
-	});
+	const requestUrl = `${apiBase}${path}`;
 
-	if (!response.ok) {
-		throw new Error(`WordPress request failed (${response.status}) for ${path}`);
+	if (wordpressCacheTtlMs > 0) {
+		const cached = responseCache.get(requestUrl);
+		if (cached && cached.expiresAt > Date.now()) {
+			return cached.value as T;
+		}
 	}
 
-	return (await response.json()) as T;
+	const inFlight = inFlightRequests.get(requestUrl);
+	if (inFlight) {
+		return (await inFlight) as T;
+	}
+
+	const request = (async () => {
+		const response = await fetch(requestUrl, {
+			headers: { Accept: 'application/json' },
+		});
+
+		if (!response.ok) {
+			throw new Error(`WordPress request failed (${response.status}) for ${path}`);
+		}
+
+		const payload = (await response.json()) as T;
+		if (wordpressCacheTtlMs > 0) {
+			responseCache.set(requestUrl, {
+				value: payload,
+				expiresAt: Date.now() + wordpressCacheTtlMs,
+			});
+		}
+		return payload;
+	})();
+
+	inFlightRequests.set(requestUrl, request);
+	try {
+		return await request;
+	} finally {
+		inFlightRequests.delete(requestUrl);
+	}
 }
 
 function decodeEntities(input: string): string {
@@ -85,39 +117,12 @@ function sortByDateDesc<T extends { date: string }>(items: T[]): T[] {
 }
 
 async function getNativePosts(limit = 100): Promise<SitePost[]> {
-	const posts = await wpFetch<WordPressPost[]>(
-		`/posts?per_page=${limit}&orderby=date&order=desc&status=publish`,
-	);
-
-	return posts.map((post) => ({
-		...post,
-		source: 'post' as const,
-	}));
-}
-
-async function getLegacyPortfolioPosts(limit = 100): Promise<SitePost[]> {
-	try {
-		const portfolioItems = await wpFetch<WordPressPost[]>(
-			`/portfolio?per_page=${limit}&orderby=date&order=desc&status=publish`,
-		);
-
-		return portfolioItems.map((item) => ({
-			...item,
-			source: 'portfolio' as const,
-		}));
-	} catch (error) {
-		if (error instanceof Error && error.message.includes('(404)')) {
-			console.info('No /portfolio endpoint found; using native posts only.');
-			return [];
-		}
-
-		throw error;
-	}
+	return wpFetch<WordPressPost[]>(`/posts?per_page=${limit}&orderby=date&order=desc&status=publish`);
 }
 
 export async function getAllPosts(): Promise<SitePost[]> {
-	const [posts, portfolioItems] = await Promise.all([getNativePosts(), getLegacyPortfolioPosts()]);
-	return sortByDateDesc([...posts, ...portfolioItems]);
+	const posts = await getNativePosts();
+	return sortByDateDesc(posts);
 }
 
 export async function getLatestPosts(limit = 6): Promise<SitePost[]> {

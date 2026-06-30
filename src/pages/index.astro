@@ -70,7 +70,6 @@ const contactPreview = contactPage?.text
 			{
 				posts.map((post) => (
 					<article class="post">
-						<p class="post-source">{post.source === 'portfolio' ? 'From portfolio archive' : 'WordPress post'}</p>
 						<h3>
 							<a href={`/posts/${post.slug}`}>{getPostTitleText(post)}</a>
 						</h3>
@@ -224,12 +223,6 @@ const contactPreview = contactPage?.text
 
 	.post h3 {
 		margin: 0 0 0.5rem;
-	}
-
-	.post-source {
-		margin: 0 0 0.35rem;
-		color: var(--accent);
-		font-size: 0.8rem;
 	}
 
 	.post h3 a {

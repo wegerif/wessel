@@ -8,16 +8,12 @@ const posts = await getAllPosts();
 <SiteLayout title="Posts | Wessel Wegerif" description="Development notes and creative work by Wessel.">
 	<section class="posts-list">
 		<h1>Posts</h1>
-		<p>
-			A unified feed of native WordPress posts and legacy portfolio items while migration is in
-			progress.
-		</p>
+		<p>Latest posts from WordPress.</p>
 		<div class="items">
 			{
 				posts.map((post) => (
 					<article class="item">
 						<time datetime={post.date}>{new Date(post.date).toLocaleDateString('en-GB')}</time>
-						<p class="type">{post.source === 'portfolio' ? 'Portfolio archive' : 'Post'}</p>
 						<h2>
 							<a href={`/posts/${post.slug}`}>{getPostTitleText(post)}</a>
 						</h2>
@@ -61,12 +57,6 @@ const posts = await getAllPosts();
 	.item time {
 		color: var(--accent);
 		font-size: 0.9rem;
-	}
-
-	.item .type {
-		margin: 0.25rem 0;
-		font-size: 0.8rem;
-		color: var(--accent-2);
 	}
 
 	.item h2 {
