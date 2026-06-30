@@ -1,0 +1,203 @@
+---
+import HeroConsole from '../components/HeroConsole';
+import SiteLayout from '../layouts/SiteLayout.astro';
+import { getLatestPosts } from '../lib/wordpress';
+
+const posts = await getLatestPosts(3);
+---
+
+<SiteLayout
+	title="Wessel Wegerif | Developer Portfolio"
+	description="Creative developer portfolio and blog by Wessel Wegerif."
+>
+	<section class="hero">
+		<div class="hero-copy">
+			<p class="tag">Developer portfolio - custom built from scratch</p>
+			<h1>Creative code with 2000s soul.</h1>
+			<p class="intro">
+				I design and build interactive experiences that feel nostalgic, bold, and deeply personal.
+				This is my digital playground and professional home base.
+			</p>
+			<div class="buttons">
+				<a href="/blog">Read blog</a>
+				<a href="https://www.wesselwegerif.nl" target="_blank" rel="noreferrer">Current live site</a>
+			</div>
+		</div>
+		<div class="hero-terminal">
+			<HeroConsole client:load />
+		</div>
+	</section>
+
+	<section class="card-grid">
+		<article class="card">
+			<h2>What I do</h2>
+			<p>Frontend engineering, design systems, and creative web storytelling.</p>
+		</article>
+		<article class="card">
+			<h2>Available for</h2>
+			<p>Freelance projects, product teams, and custom portfolio experiences.</p>
+		</article>
+		<article class="card">
+			<h2>Stack right now</h2>
+			<p>TypeScript, Astro, React, CSS animation, and API-driven architecture.</p>
+		</article>
+	</section>
+
+	<section class="latest">
+		<div class="section-title">
+			<h2>Latest posts</h2>
+			<a href="/blog">View all</a>
+		</div>
+		<div class="posts">
+			{
+				posts.map((post) => (
+					<article class="post">
+						<h3>
+							<a href={`/blog/${post.slug}`}>{post.title.rendered}</a>
+						</h3>
+						<p set:html={post.excerpt.rendered} />
+					</article>
+				))
+			}
+		</div>
+	</section>
+</SiteLayout>
+
+<style>
+	.hero {
+		display: grid;
+		grid-template-columns: 1.1fr 0.9fr;
+		gap: 1.5rem;
+		align-items: center;
+	}
+
+	.tag {
+		font-family: ui-monospace, 'Cascadia Code', Consolas, monospace;
+		color: var(--accent);
+		margin-bottom: 0.75rem;
+	}
+
+	h1 {
+		font-size: clamp(2rem, 6vw, 4.2rem);
+		line-height: 1;
+		margin: 0;
+		text-wrap: balance;
+	}
+
+	.intro {
+		color: var(--muted);
+		max-width: 58ch;
+	}
+
+	.buttons {
+		display: flex;
+		gap: 0.8rem;
+		flex-wrap: wrap;
+		margin-top: 1.2rem;
+	}
+
+	.buttons a {
+		text-decoration: none;
+		border: 1px solid rgba(255, 255, 255, 0.2);
+		padding: 0.55rem 0.95rem;
+		border-radius: 10px;
+	}
+
+	.buttons a:first-child {
+		background: linear-gradient(45deg, var(--accent), var(--accent-2));
+		color: #130727;
+		border: 0;
+		font-weight: 700;
+	}
+
+	.hero-terminal {
+		background: rgba(15, 11, 30, 0.8);
+		border: 1px solid rgba(255, 255, 255, 0.16);
+		border-radius: 16px;
+		padding: 1.2rem;
+		min-height: 220px;
+	}
+
+	:global(.hero-console) {
+		font-family: ui-monospace, 'Cascadia Code', Consolas, monospace;
+		color: var(--accent);
+	}
+
+	:global(.hero-console p) {
+		margin: 0 0 0.6rem;
+	}
+
+	.card-grid {
+		margin-top: 2rem;
+		display: grid;
+		grid-template-columns: repeat(3, minmax(0, 1fr));
+		gap: 1rem;
+	}
+
+	.card {
+		background: var(--surface);
+		border: 1px solid rgba(255, 255, 255, 0.1);
+		border-radius: 16px;
+		padding: 1rem;
+	}
+
+	.card h2 {
+		margin-top: 0;
+		font-size: 1.1rem;
+	}
+
+	.card p {
+		color: var(--muted);
+		margin-bottom: 0;
+	}
+
+	.latest {
+		margin-top: 2.5rem;
+	}
+
+	.section-title {
+		display: flex;
+		justify-content: space-between;
+		align-items: center;
+	}
+
+	.section-title a {
+		color: var(--accent);
+	}
+
+	.posts {
+		margin-top: 0.8rem;
+		display: grid;
+		gap: 0.85rem;
+	}
+
+	.post {
+		background: rgba(12, 9, 25, 0.82);
+		border: 1px solid rgba(255, 255, 255, 0.12);
+		border-radius: 14px;
+		padding: 1rem;
+	}
+
+	.post h3 {
+		margin: 0 0 0.5rem;
+	}
+
+	.post h3 a {
+		text-decoration: none;
+	}
+
+	:global(.post p) {
+		margin: 0;
+		color: var(--muted);
+	}
+
+	@media (max-width: 900px) {
+		.hero {
+			grid-template-columns: 1fr;
+		}
+
+		.card-grid {
+			grid-template-columns: 1fr;
+		}
+	}
+</style>

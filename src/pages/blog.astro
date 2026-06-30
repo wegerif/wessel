@@ -1,0 +1,63 @@
+---
+import SiteLayout from '../layouts/SiteLayout.astro';
+import { getAllPosts } from '../lib/wordpress';
+
+const posts = await getAllPosts();
+---
+
+<SiteLayout title="Blog | Wessel Wegerif" description="Development notes and experiments by Wessel.">
+	<section class="blog-list">
+		<h1>Blog</h1>
+		<p>Written in WordPress, published in this custom frontend.</p>
+		<div class="posts">
+			{
+				posts.map((post) => (
+					<article>
+						<time datetime={post.date}>{new Date(post.date).toLocaleDateString('en-GB')}</time>
+						<h2>
+							<a href={`/blog/${post.slug}`}>{post.title.rendered}</a>
+						</h2>
+						<div set:html={post.excerpt.rendered} />
+					</article>
+				))
+			}
+		</div>
+	</section>
+</SiteLayout>
+
+<style>
+	.blog-list > p {
+		color: var(--muted);
+	}
+
+	.posts {
+		margin-top: 1rem;
+		display: grid;
+		gap: 0.9rem;
+	}
+
+	article {
+		padding: 1rem;
+		border-radius: 14px;
+		background: rgba(12, 9, 25, 0.82);
+		border: 1px solid rgba(255, 255, 255, 0.12);
+	}
+
+	article time {
+		color: var(--accent);
+		font-size: 0.9rem;
+	}
+
+	article h2 {
+		margin: 0.4rem 0;
+	}
+
+	article h2 a {
+		text-decoration: none;
+	}
+
+	:global(article div p) {
+		margin: 0;
+		color: var(--muted);
+	}
+</style>

@@ -1,0 +1,133 @@
+---
+interface Props {
+	title: string;
+	description: string;
+}
+
+const { title, description } = Astro.props;
+---
+
+<!doctype html>
+<html lang="en">
+	<head>
+		<meta charset="UTF-8" />
+		<meta name="viewport" content="width=device-width" />
+		<meta name="description" content={description} />
+		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+		<title>{title}</title>
+	</head>
+	<body>
+		<div class="grid-overlay" aria-hidden="true"></div>
+		<div class="noise-overlay" aria-hidden="true"></div>
+		<header class="site-header">
+			<a class="brand" href="/">Wessel Wegerif</a>
+			<nav>
+				<a href="/">Home</a>
+				<a href="/blog">Blog</a>
+			</nav>
+		</header>
+		<main>
+			<slot />
+		</main>
+		<footer class="site-footer">
+			<p>Built with Astro + React. Powered by headless WordPress content.</p>
+		</footer>
+	</body>
+</html>
+
+<style>
+	:root {
+		--bg: #0a0618;
+		--surface: #15102d;
+		--text: #f4f0ff;
+		--muted: #c0b6e5;
+		--accent: #7ce4ff;
+		--accent-2: #ff82d9;
+	}
+
+	* {
+		box-sizing: border-box;
+	}
+
+	html,
+	body {
+		margin: 0;
+		min-height: 100%;
+		font-family: 'Inter', 'Segoe UI', Tahoma, sans-serif;
+		color: var(--text);
+		background: radial-gradient(circle at top right, #25114d 0%, var(--bg) 50%);
+	}
+
+	a {
+		color: inherit;
+	}
+
+	.grid-overlay {
+		position: fixed;
+		inset: 0;
+		background-image:
+			linear-gradient(to right, rgba(255, 255, 255, 0.04) 1px, transparent 1px),
+			linear-gradient(to bottom, rgba(255, 255, 255, 0.04) 1px, transparent 1px);
+		background-size: 32px 32px;
+		pointer-events: none;
+		z-index: -2;
+	}
+
+	.noise-overlay {
+		position: fixed;
+		inset: 0;
+		opacity: 0.15;
+		background-image: radial-gradient(rgba(255, 255, 255, 0.12) 1px, transparent 1px);
+		background-size: 3px 3px;
+		pointer-events: none;
+		z-index: -1;
+	}
+
+	.site-header {
+		position: sticky;
+		top: 0;
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		padding: 1rem clamp(1rem, 4vw, 3rem);
+		backdrop-filter: blur(8px);
+		background: rgba(10, 6, 24, 0.6);
+		border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+	}
+
+	.brand {
+		text-decoration: none;
+		font-weight: 700;
+		letter-spacing: 0.06em;
+		text-transform: uppercase;
+	}
+
+	nav {
+		display: flex;
+		gap: 1rem;
+	}
+
+	nav a {
+		text-decoration: none;
+		padding: 0.35rem 0.7rem;
+		border: 1px solid transparent;
+		border-radius: 999px;
+	}
+
+	nav a:hover {
+		border-color: rgba(255, 255, 255, 0.3);
+	}
+
+	main {
+		width: min(1120px, 92vw);
+		margin: 0 auto;
+		padding: 2.5rem 0 3rem;
+	}
+
+	.site-footer {
+		width: min(1120px, 92vw);
+		margin: 0 auto;
+		padding: 0 0 2rem;
+		color: var(--muted);
+	}
+</style>
