@@ -34,13 +34,16 @@ npm run dev
 npm run build
 ```
 
+`npm run build` only creates static files in `dist/` (it does not run a local server).  
+Use `npm run dev` for local development (`localhost:4321`) or `npm run preview` to preview a build.
+
 ## Current pages
 
 - `/` home
+- `/about` about + skill tree
+- `/contact` contact
 - `/posts` posts overview
 - `/posts/[slug]` post detail
-
-Legacy routes (`/blog`, `/blog/[slug]`) redirect to `/posts`.
 
 ## Content migration status
 
@@ -49,6 +52,9 @@ Legacy routes (`/blog`, `/blog/[slug]`) redirect to `/posts`.
   - native WordPress `post`
   - legacy `portfolio` custom post type (Visual Portfolio)
 - This keeps your existing portfolio work visible while you migrate to native posts.
+- Theme toggle is available in the top-right (sun/moon icon).
+- Custom cursor + coordinate HUD are enabled in desktop browsers.
+- Sprite-stack car selector (🚘) is in the header; selected car follows mouse and climbs road blocks.
 
 ## Deploying on DirectAdmin (static hosting path)
 

@@ -1,5 +1,8 @@
 ---
 import CursorTracker from '../components/CursorTracker';
+import CarSelector from '../components/CarSelector';
+import SpriteStackFollower from '../components/SpriteStackFollower';
+import ThemeToggle from '../components/ThemeToggle';
 
 interface Props {
 	title: string;
@@ -16,21 +19,41 @@ const { title, description } = Astro.props;
 		<meta name="viewport" content="width=device-width" />
 		<meta name="description" content={description} />
 		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+		<link rel="preconnect" href="https://fonts.googleapis.com" />
+		<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+		<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet" />
 		<title>{title}</title>
+		<script is:inline>
+			const savedTheme = localStorage.getItem('theme-preference');
+			const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+			const initialTheme = savedTheme === 'light' || savedTheme === 'dark' ? savedTheme : prefersDark ? 'dark' : 'light';
+			document.documentElement.setAttribute('data-theme', initialTheme);
+		</script>
 	</head>
 	<body>
-		<div class="grid-overlay" aria-hidden="true"></div>
-		<div class="noise-overlay" aria-hidden="true"></div>
+		<div class="stars stars-far" aria-hidden="true"></div>
+		<div class="stars stars-mid" aria-hidden="true"></div>
+		<div class="stars stars-near" aria-hidden="true"></div>
+		<div class="nebula-overlay" aria-hidden="true"></div>
+		<div class="scanline-overlay" aria-hidden="true"></div>
 		<header class="site-header">
 			<a class="brand" href="/">Wessel Wegerif</a>
-			<nav>
-				<a href="/">Home</a>
-				<a href="/posts">Posts</a>
-			</nav>
+			<div class="header-actions">
+				<nav>
+					<a href="/">Home</a>
+					<a href="/about">About</a>
+					<a href="/posts">Posts</a>
+					<a href="/style-lab">Style Lab</a>
+					<a href="/contact">Contact</a>
+				</nav>
+				<CarSelector client:load />
+				<ThemeToggle client:load />
+			</div>
 		</header>
 		<main>
 			<slot />
 		</main>
+		<SpriteStackFollower client:load />
 		<CursorTracker client:load />
 		<footer class="site-footer">
 			<p>Built with Astro + React. Powered by headless WordPress content.</p>
@@ -39,13 +62,45 @@ const { title, description } = Astro.props;
 </html>
 
 <style>
-	:root {
-		--bg: #0a0618;
-		--surface: #15102d;
-		--text: #f4f0ff;
-		--muted: #c0b6e5;
-		--accent: #7ce4ff;
-		--accent-2: #ff82d9;
+	:root,
+	:root[data-theme='dark'] {
+		--bg: #06070e;
+		--bg-2: #0c1224;
+		--bg-accent-1: #2a2256;
+		--bg-accent-2: #0d2f4e;
+		--surface: rgba(17, 24, 42, 0.8);
+		--surface-strong: #131a31;
+		--panel-bg: linear-gradient(180deg, rgba(12, 18, 36, 0.92), rgba(8, 12, 24, 0.92));
+		--panel-border: rgba(125, 249, 255, 0.22);
+		--panel-hover: rgba(255, 93, 200, 0.42);
+		--text: #edf4ff;
+		--muted: #a3b2d7;
+		--accent: #7df9ff;
+		--accent-2: #ff5dc8;
+		--accent-3: #ffc857;
+		--header-bg: rgba(6, 8, 18, 0.7);
+		--header-border: rgba(125, 249, 255, 0.28);
+		--overlay-opacity: 0.14;
+	}
+
+	:root[data-theme='light'] {
+		--bg: #f7f8ff;
+		--bg-2: #ecf2ff;
+		--bg-accent-1: #d7c8ff;
+		--bg-accent-2: #bde8ff;
+		--surface: rgba(255, 255, 255, 0.86);
+		--surface-strong: #ffffff;
+		--panel-bg: linear-gradient(180deg, rgba(255, 255, 255, 0.94), rgba(240, 246, 255, 0.94));
+		--panel-border: rgba(55, 97, 188, 0.23);
+		--panel-hover: rgba(66, 132, 235, 0.42);
+		--text: #192342;
+		--muted: #3f517f;
+		--accent: #2f6ee5;
+		--accent-2: #a94de3;
+		--accent-3: #cc8a00;
+		--header-bg: rgba(255, 255, 255, 0.74);
+		--header-border: rgba(55, 97, 188, 0.25);
+		--overlay-opacity: 0.06;
 	}
 
 	* {
@@ -58,76 +113,238 @@ const { title, description } = Astro.props;
 		min-height: 100%;
 		font-family: 'Inter', 'Segoe UI', Tahoma, sans-serif;
 		color: var(--text);
-		background: radial-gradient(circle at top right, #25114d 0%, var(--bg) 50%);
+		background:
+			radial-gradient(circle at 85% 5%, var(--bg-accent-1) 0%, transparent 25%),
+			radial-gradient(circle at 10% 80%, var(--bg-accent-2) 0%, transparent 35%),
+			linear-gradient(180deg, var(--bg-2) 0%, var(--bg) 65%);
 	}
 
 	a {
 		color: inherit;
 	}
 
-	:global(body.has-custom-cursor) {
-		cursor: none;
-	}
-
+	:global(body.has-custom-cursor),
 	:global(body.has-custom-cursor a),
-	:global(body.has-custom-cursor button) {
-		cursor: none;
+	:global(body.has-custom-cursor button),
+	:global(body.has-custom-cursor [role='button']) {
+		cursor: none !important;
 	}
 
 	:global(.cursor-dot) {
 		position: fixed;
-		width: 8px;
-		height: 8px;
+		top: 0;
+		left: 0;
+		width: 12px;
+		height: 12px;
 		border-radius: 999px;
-		background: var(--accent);
-		z-index: 9999;
+		background: #ffffff;
+		box-shadow:
+			0 0 0 1px rgba(0, 0, 0, 0.55),
+			0 0 24px rgba(125, 249, 255, 0.95);
+		z-index: 12000;
 		pointer-events: none;
-		mix-blend-mode: screen;
+		will-change: transform;
+		opacity: 1;
 	}
 
 	:global(.cursor-ring) {
 		position: fixed;
-		width: 32px;
-		height: 32px;
+		top: 0;
+		left: 0;
+		width: 40px;
+		height: 40px;
 		border-radius: 999px;
-		border: 1px solid var(--accent-2);
-		z-index: 9998;
+		border: 2px solid rgba(255, 93, 200, 0.95);
+		box-shadow: 0 0 18px rgba(255, 93, 200, 0.45);
+		z-index: 11999;
 		pointer-events: none;
+		will-change: transform;
+		transition:
+			transform 110ms ease,
+			border-color 180ms ease,
+			box-shadow 180ms ease;
+		opacity: 1;
+	}
+
+	:global(.cursor-ring.pressed) {
+		border-color: rgba(125, 249, 255, 0.95);
+		box-shadow: 0 0 24px rgba(125, 249, 255, 0.65);
 	}
 
 	:global(.cursor-coordinates) {
 		position: fixed;
-		left: 0.75rem;
-		bottom: 0.75rem;
-		padding: 0.4rem 0.55rem;
+		left: 50%;
+		transform: translateX(-50%);
+		bottom: 4.6rem;
+		padding: 0.45rem 0.7rem;
 		border: 1px solid rgba(255, 255, 255, 0.15);
 		border-radius: 8px;
-		background: rgba(8, 5, 17, 0.7);
+		background: var(--surface);
 		color: var(--accent);
-		font-family: ui-monospace, 'Cascadia Code', Consolas, monospace;
-		font-size: 0.8rem;
-		z-index: 9997;
+		font-family: 'Press Start 2P', ui-monospace, 'Cascadia Code', Consolas, monospace;
+		font-size: 0.65rem;
+		letter-spacing: 0.04em;
+		z-index: 11998;
+		backdrop-filter: blur(3px);
+		text-shadow: 0 0 8px color-mix(in srgb, var(--accent) 65%, transparent);
 	}
 
-	.grid-overlay {
+	:global(.car-selector) {
+		position: relative;
+	}
+
+	:global(.car-button) {
+		display: inline-flex;
+		align-items: center;
+		gap: 0.45rem;
+		padding: 0.45rem 0.65rem;
+		border-radius: 10px;
+		border: 1px solid var(--panel-border);
+		background: var(--surface);
+		color: var(--accent);
+		cursor: pointer;
+		z-index: 10042;
+	}
+
+	:global(.car-button .label) {
+		font-size: 0.75rem;
+		white-space: nowrap;
+	}
+
+	:global(.car-menu) {
+		position: absolute;
+		top: calc(100% + 0.4rem);
+		right: 0;
+		display: grid;
+		gap: 0.3rem;
+		width: 180px;
+		padding: 0.5rem;
+		border-radius: 12px;
+		border: 1px solid var(--panel-border);
+		background: var(--surface-strong);
+		box-shadow: 0 12px 28px rgba(0, 0, 0, 0.25);
+		z-index: 10060;
+	}
+
+	:global(.speed-control) {
+		display: grid;
+		gap: 0.25rem;
+		padding: 0.2rem 0.3rem 0.45rem;
+		border-bottom: 1px solid var(--panel-border);
+		margin-bottom: 0.25rem;
+	}
+
+	:global(.speed-control label) {
+		font-size: 0.7rem;
+		color: var(--muted);
+	}
+
+	:global(.speed-control input) {
+		width: 100%;
+	}
+
+	:global(.car-option) {
+		text-align: left;
+		padding: 0.4rem 0.5rem;
+		border: 1px solid transparent;
+		border-radius: 8px;
+		background: transparent;
+		color: var(--text);
+		cursor: pointer;
+	}
+
+	:global(.car-option:hover),
+	:global(.car-option.active) {
+		border-color: var(--panel-border);
+		background: var(--surface);
+	}
+
+	:global(.sprite-follower) {
 		position: fixed;
 		inset: 0;
+		pointer-events: none;
+		z-index: 3000;
+	}
+
+	:global(.sprite-follower .sprite-car) {
+		position: fixed;
+		top: 0;
+		left: 0;
+		width: 64px;
+		height: 64px;
+		will-change: transform;
+		filter: drop-shadow(0 2px 2px rgba(0, 0, 0, 0.45));
+		z-index: 3001;
+	}
+
+	:global(.sprite-follower .sprite-particle) {
+		position: fixed;
+		top: 0;
+		left: 0;
+		pointer-events: none;
+		image-rendering: pixelated;
+		z-index: 3002;
+	}
+
+	.stars {
+		position: fixed;
+		inset: 0;
+		pointer-events: none;
+		z-index: -4;
+	}
+
+	.stars-far {
+		background-image: radial-gradient(rgba(255, 255, 255, 0.55) 1px, transparent 1px);
+		background-size: 6px 6px;
+		opacity: 0.26;
+		animation: star-drift 120s linear infinite;
+	}
+
+	.stars-mid {
 		background-image:
-			linear-gradient(to right, rgba(255, 255, 255, 0.04) 1px, transparent 1px),
-			linear-gradient(to bottom, rgba(255, 255, 255, 0.04) 1px, transparent 1px);
-		background-size: 32px 32px;
+			radial-gradient(rgba(125, 249, 255, 0.8) 1px, transparent 1px),
+			radial-gradient(rgba(255, 93, 200, 0.75) 1px, transparent 1px);
+		background-size:
+			11px 11px,
+			15px 15px;
+		background-position:
+			0 0,
+			3px 6px;
+		opacity: 0.28;
+		animation: star-drift 80s linear infinite reverse;
+	}
+
+	.stars-near {
+		background-image: radial-gradient(rgba(255, 200, 87, 0.95) 1px, transparent 1px);
+		background-size: 19px 19px;
+		opacity: 0.3;
+		animation: star-shimmer 5s ease-in-out infinite;
+	}
+
+	:root[data-theme='light'] .stars,
+	:root[data-theme='light'] .nebula-overlay,
+	:root[data-theme='light'] .scanline-overlay {
+		opacity: 0;
+	}
+
+	.nebula-overlay {
+		position: fixed;
+		inset: 0;
+		background:
+			radial-gradient(circle at 20% 30%, rgba(125, 249, 255, 0.16), transparent 45%),
+			radial-gradient(circle at 72% 72%, rgba(255, 93, 200, 0.14), transparent 50%);
+		pointer-events: none;
+		z-index: -3;
+	}
+
+	.scanline-overlay {
+		position: fixed;
+		inset: 0;
+		background-image: linear-gradient(to bottom, transparent 0, rgba(0, 0, 0, 0.16) 50%, transparent 100%);
+		background-size: 100% 3px;
+		opacity: var(--overlay-opacity);
 		pointer-events: none;
 		z-index: -2;
-	}
-
-	.noise-overlay {
-		position: fixed;
-		inset: 0;
-		opacity: 0.15;
-		background-image: radial-gradient(rgba(255, 255, 255, 0.12) 1px, transparent 1px);
-		background-size: 3px 3px;
-		pointer-events: none;
-		z-index: -1;
 	}
 
 	.site-header {
@@ -137,9 +354,11 @@ const { title, description } = Astro.props;
 		align-items: center;
 		justify-content: space-between;
 		padding: 1rem clamp(1rem, 4vw, 3rem);
-		backdrop-filter: blur(8px);
-		background: rgba(10, 6, 24, 0.6);
-		border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+		backdrop-filter: blur(10px);
+		background: var(--header-bg);
+		border-bottom: 1px solid var(--header-border);
+		overflow: visible;
+		z-index: 10040;
 	}
 
 	.brand {
@@ -147,6 +366,16 @@ const { title, description } = Astro.props;
 		font-weight: 700;
 		letter-spacing: 0.06em;
 		text-transform: uppercase;
+	}
+
+	.header-actions {
+		display: flex;
+		align-items: center;
+		gap: 0.7rem;
+		flex-wrap: wrap;
+		justify-content: flex-end;
+		position: relative;
+		z-index: 10041;
 	}
 
 	nav {
@@ -162,7 +391,54 @@ const { title, description } = Astro.props;
 	}
 
 	nav a:hover {
-		border-color: rgba(255, 255, 255, 0.3);
+		border-color: var(--panel-border);
+		background: var(--surface);
+	}
+
+	:global(.theme-toggle) {
+		position: relative;
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+		width: 2.25rem;
+		height: 2.25rem;
+		border-radius: 999px;
+		border: 1px solid var(--panel-border);
+		background: var(--surface);
+		color: var(--accent);
+		padding: 0;
+		cursor: pointer;
+		flex-shrink: 0;
+		min-width: 2.25rem;
+		min-height: 2.25rem;
+		z-index: 10042;
+	}
+
+	:global(.theme-toggle .icon-fallback) {
+		opacity: 0.45;
+		font-size: 0.75rem;
+	}
+
+	:global(.theme-toggle .icon) {
+		position: absolute;
+		width: 1rem;
+		height: 1rem;
+		opacity: 0;
+		transform: scale(0.65);
+		transition:
+			opacity 180ms ease,
+			transform 180ms ease;
+	}
+
+	:global(.theme-toggle .icon.visible) {
+		opacity: 1;
+		transform: scale(1);
+	}
+
+	:global(.theme-toggle svg) {
+		width: 100%;
+		height: 100%;
+		display: block;
 	}
 
 	main {
@@ -178,11 +454,40 @@ const { title, description } = Astro.props;
 		color: var(--muted);
 	}
 
-	@media (pointer: coarse) {
-		:global(.cursor-dot),
-		:global(.cursor-ring),
-		:global(.cursor-coordinates) {
-			display: none;
+	@keyframes star-drift {
+		0% {
+			transform: translateY(0);
+		}
+		100% {
+			transform: translateY(180px);
+		}
+	}
+
+	@keyframes star-shimmer {
+		0%,
+		100% {
+			opacity: 0.12;
+		}
+		50% {
+			opacity: 0.3;
+		}
+	}
+
+	@media (max-width: 860px) {
+		.site-header {
+			flex-direction: column;
+			align-items: flex-start;
+			gap: 0.6rem;
+		}
+
+		.header-actions {
+			width: 100%;
+			justify-content: space-between;
+		}
+
+		nav {
+			gap: 0.6rem;
+			flex-wrap: wrap;
 		}
 	}
 </style>

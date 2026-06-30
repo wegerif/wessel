@@ -38,17 +38,46 @@ async function wpFetch<T>(path: string): Promise<T> {
 	return (await response.json()) as T;
 }
 
-function stripHtmlAndShortcodes(input: string): string {
+function decodeEntities(input: string): string {
 	return input
-		.replace(/<[^>]+>/g, ' ')
-		.replace(/\[[^\]]+\]/g, ' ')
 		.replace(/&nbsp;/g, ' ')
 		.replace(/&amp;/g, '&')
 		.replace(/&#8217;/g, "'")
+		.replace(/&#8211;/g, '-')
 		.replace(/&#8220;/g, '"')
 		.replace(/&#8221;/g, '"')
+		.replace(/&#8230;/g, '...')
+		.replace(/&#039;/g, "'")
+		.replace(/&quot;/g, '"')
+		.replace(/&rsquo;/g, "'")
+		.replace(/&ldquo;/g, '"')
+		.replace(/&rdquo;/g, '"')
+		.replace(/&ndash;/g, '-')
+		.replace(/&hellip;/g, '...');
+}
+
+export function stripHtmlAndShortcodes(input: string): string {
+	return decodeEntities(input)
+		.replace(/<[^>]+>/g, ' ')
+		.replace(/\[[^\]]+\]/g, ' ')
 		.replace(/\s+/g, ' ')
 		.trim();
+}
+
+export function getPostTitleText(post: SitePost): string {
+	return stripHtmlAndShortcodes(post.title.rendered);
+}
+
+export function getPostPreviewText(post: SitePost, maxLength = 180): string {
+	const excerptText = stripHtmlAndShortcodes(post.excerpt.rendered);
+	const contentText = stripHtmlAndShortcodes(post.content.rendered);
+	const source = excerptText || contentText;
+
+	if (source.length <= maxLength) {
+		return source;
+	}
+
+	return `${source.slice(0, maxLength).trim()}...`;
 }
 
 function sortByDateDesc<T extends { date: string }>(items: T[]): T[] {

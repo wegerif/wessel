@@ -1,6 +1,6 @@
 ---
 import SiteLayout from '../../layouts/SiteLayout.astro';
-import { getAllPosts, type SitePost } from '../../lib/wordpress';
+import { getAllPosts, getPostTitleText, type SitePost } from '../../lib/wordpress';
 
 export async function getStaticPaths() {
 	const posts = await getAllPosts();
@@ -11,16 +11,17 @@ export async function getStaticPaths() {
 }
 
 const { post } = Astro.props as { post: SitePost };
+const postTitle = getPostTitleText(post);
 ---
 
-<SiteLayout title={`${post.title.rendered} | Wessel Wegerif`} description={`Post: ${post.title.rendered}`}>
+<SiteLayout title={`${postTitle} | Wessel Wegerif`} description={`Post: ${postTitle}`}>
 	<article class="post">
 		<p class="meta">
 			{new Date(post.date).toLocaleDateString('en-GB')} - {post.source === 'portfolio'
 				? 'Portfolio archive'
 				: 'WordPress post'}
 		</p>
-		<h1 set:html={post.title.rendered} />
+		<h1>{postTitle}</h1>
 		<div class="content" set:html={post.content.rendered} />
 	</article>
 </SiteLayout>
@@ -29,10 +30,11 @@ const { post } = Astro.props as { post: SitePost };
 	.post {
 		max-width: 760px;
 		margin: 0 auto;
-		padding: 1.2rem;
-		border-radius: 16px;
-		background: rgba(12, 9, 25, 0.82);
-		border: 1px solid rgba(255, 255, 255, 0.12);
+		padding: 1.4rem;
+		border-radius: 18px;
+		background: var(--panel-bg);
+		border: 1px solid var(--panel-border);
+		box-shadow: 0 12px 32px rgba(2, 6, 14, 0.55);
 	}
 
 	.meta {
@@ -42,6 +44,8 @@ const { post } = Astro.props as { post: SitePost };
 
 	h1 {
 		text-wrap: balance;
+		line-height: 1.1;
+		margin-top: 0.35rem;
 	}
 
 	:global(.content p) {
@@ -51,5 +55,24 @@ const { post } = Astro.props as { post: SitePost };
 
 	:global(.content a) {
 		color: var(--accent);
+	}
+
+	:global(.content h2),
+	:global(.content h3) {
+		color: var(--text);
+		margin-top: 1.4rem;
+	}
+
+	:global(.content img) {
+		max-width: 100%;
+		height: auto;
+		border-radius: 12px;
+		border: 1px solid var(--panel-border);
+	}
+
+	:global(.content iframe) {
+		max-width: 100%;
+		border-radius: 12px;
+		border: 1px solid var(--panel-border);
 	}
 </style>

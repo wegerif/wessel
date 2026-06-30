@@ -1,0 +1,119 @@
+---
+const branches = [
+	{
+		name: 'Design',
+		skills: ['Branding', 'UI/UX', 'Visual systems', 'Storytelling'],
+	},
+	{
+		name: 'Development',
+		skills: ['JavaScript', 'TypeScript', 'Svelte', 'Astro', 'React', 'CSS'],
+	},
+	{
+		name: 'Data',
+		skills: ['Python', 'Machine learning', 'Analytics', 'Experimentation'],
+	},
+	{
+		name: 'Creative media',
+		skills: ['Video', 'Photography', 'Copywriting', 'Concepting'],
+	},
+];
+---
+
+<section class="skill-tree" aria-label="Skill tree">
+	<div class="trunk">Wessel</div>
+	<div class="branches">
+		{
+			branches.map((branch) => (
+				<article class="branch">
+					<h3>{branch.name}</h3>
+					<ul>
+						{branch.skills.map((skill) => <li>{skill}</li>)}
+					</ul>
+				</article>
+			))
+		}
+	</div>
+</section>
+
+<style>
+	.skill-tree {
+		margin-top: 1rem;
+		padding: 1rem;
+		border: 1px solid var(--panel-border);
+		border-radius: 18px;
+		background: var(--panel-bg);
+	}
+
+	.trunk {
+		display: inline-block;
+		padding: 0.35rem 0.7rem;
+		border-radius: 999px;
+		background: linear-gradient(45deg, var(--accent), var(--accent-2));
+		color: var(--bg);
+		font-weight: 700;
+	}
+
+	.branches {
+		position: relative;
+		margin-top: 1rem;
+		display: grid;
+		grid-template-columns: repeat(2, minmax(0, 1fr));
+		gap: 0.9rem;
+	}
+
+	.branches::before {
+		content: '';
+		position: absolute;
+		top: -0.45rem;
+		left: 0.75rem;
+		right: 0.75rem;
+		height: 1px;
+		border-top: 1px dashed var(--panel-border);
+	}
+
+	.branch {
+		position: relative;
+		padding: 0.85rem;
+		border-radius: 12px;
+		border: 1px solid var(--panel-border);
+		background: var(--surface);
+	}
+
+	.branch::before {
+		content: '';
+		position: absolute;
+		top: -0.55rem;
+		left: 1rem;
+		height: 0.55rem;
+		width: 1px;
+		background: var(--panel-border);
+	}
+
+	h3 {
+		margin: 0;
+		color: var(--accent);
+	}
+
+	ul {
+		margin: 0.55rem 0 0;
+		padding: 0;
+		list-style: none;
+		display: flex;
+		flex-wrap: wrap;
+		gap: 0.45rem;
+	}
+
+	li {
+		padding: 0.2rem 0.5rem;
+		border-radius: 999px;
+		border: 1px solid var(--panel-border);
+		font-size: 0.8rem;
+		color: var(--muted);
+	}
+
+	@media (max-width: 760px) {
+		.branches {
+			grid-template-columns: 1fr;
+		}
+	}
+</style>

@@ -1,0 +1,34 @@
+---
+import SiteLayout from '../layouts/SiteLayout.astro';
+import SkillTree from '../components/SkillTree.astro';
+import { getPageContentBySlug } from '../lib/wordpress';
+
+const aboutPage = await getPageContentBySlug('about');
+---
+
+<SiteLayout title="About | Wessel Wegerif" description="About Wessel Wegerif.">
+	<section class="about-page">
+		<h1>{aboutPage?.title ?? 'About me'}</h1>
+		<p class="lead">{aboutPage?.text ?? 'About content is being prepared.'}</p>
+
+		<h2>Skill tree</h2>
+		<p class="lead">Design roots, development branches, and data-driven experimentation.</p>
+		<SkillTree />
+	</section>
+</SiteLayout>
+
+<style>
+	.about-page {
+		max-width: 900px;
+		margin: 0 auto;
+	}
+
+	.lead {
+		color: var(--muted);
+		line-height: 1.8;
+	}
+
+	h2 {
+		margin-top: 2rem;
+	}
+</style>

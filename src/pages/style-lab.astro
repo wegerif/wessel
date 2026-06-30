@@ -1,0 +1,183 @@
+---
+import SiteLayout from '../layouts/SiteLayout.astro';
+---
+
+<SiteLayout title="Style Lab | Wessel Wegerif" description="Retro visual directions for the new website.">
+	<section class="lab">
+		<h1>Style Lab: Fusion Direction</h1>
+		<p class="intro">
+			This is your favorite mix: BIOS terminal mood + Aero glass panels + GeoCities buttons + Arcade
+			hover zoom.
+		</p>
+
+		<section class="fusion">
+			<header class="fusion-top">
+				<div class="boot">
+					<p>&gt; SYSTEM READY</p>
+					<p>&gt; WESSEL MODE: CREATIVE DEV</p>
+					<p>&gt; LOADING PORTFOLIO ENGINE...</p>
+				</div>
+				<div class="aero-window">
+					<div class="window-title">portfolio.exe</div>
+					<p>Glass UI panel with soft 2007-era blur and glow.</p>
+				</div>
+			</header>
+
+			<div class="geo-buttons">
+				<a href="/posts">NEW POSTS!</a>
+				<a href="/about">ABOUT ME!</a>
+				<a href="/contact">LET'S CONNECT!</a>
+				<a href="/">ENTER SITE!</a>
+			</div>
+
+			<div class="arcade-grid">
+				<div class="arc-card">DEV</div>
+				<div class="arc-card">DESIGN</div>
+				<div class="arc-card">DATA</div>
+			</div>
+		</section>
+
+		<section class="notes">
+			<h2>Sprite stack car note</h2>
+			<p>
+				Use the car selector in the header (🚘) to switch between the imported sprite cars. The
+				selected sprite follows your mouse globally with smooth speed-based movement.
+			</p>
+		</section>
+	</section>
+</SiteLayout>
+
+<style>
+	@import url('https://fonts.googleapis.com/css2?family=VT323&family=Orbitron:wght@600&family=Rubik+Mono+One&display=swap');
+
+	.lab h1 {
+		margin-top: 0;
+	}
+
+	.intro {
+		color: var(--muted);
+		max-width: 70ch;
+	}
+
+	.fusion {
+		margin-top: 1rem;
+		padding: 1rem;
+		border-radius: 16px;
+		border: 1px solid var(--panel-border);
+		background: var(--panel-bg);
+	}
+
+	.fusion-top {
+		display: grid;
+		grid-template-columns: 1fr 1fr;
+		gap: 0.9rem;
+	}
+
+	.boot {
+		padding: 0.9rem;
+		border-radius: 12px;
+		background: linear-gradient(180deg, #06160c, #031007);
+		border: 1px solid #2b8d4e;
+		color: #89fbb4;
+		font-family: 'VT323', monospace;
+		font-size: 1.35rem;
+		text-shadow: 0 0 10px rgba(137, 251, 180, 0.35);
+	}
+
+	.boot p {
+		margin: 0.2rem 0;
+	}
+
+	.aero-window {
+		padding: 0.9rem;
+		border-radius: 12px;
+		border: 1px solid rgba(186, 222, 255, 0.8);
+		background: linear-gradient(180deg, rgba(181, 219, 255, 0.42), rgba(41, 99, 201, 0.35));
+		backdrop-filter: blur(4px);
+		color: #f4fbff;
+	}
+
+	.window-title {
+		font-family: 'Orbitron', sans-serif;
+		font-size: 0.85rem;
+		letter-spacing: 0.05em;
+		margin-bottom: 0.5rem;
+	}
+
+	.geo-buttons {
+		margin-top: 0.95rem;
+		display: flex;
+		gap: 0.6rem;
+		flex-wrap: wrap;
+	}
+
+	.geo-buttons a {
+		font-family: 'Press Start 2P', monospace;
+		font-size: 0.56rem;
+		padding: 0.55rem 0.65rem;
+		border-radius: 6px;
+		text-decoration: none;
+		background: linear-gradient(45deg, #fff17c, #ff9968);
+		color: #29063d;
+		border: 1px solid rgba(40, 9, 52, 0.24);
+		animation: blink 1.1s step-end infinite;
+		transition: transform 180ms ease;
+	}
+
+	.geo-buttons a:hover {
+		transform: scale(1.08);
+	}
+
+	.arcade-grid {
+		margin-top: 0.95rem;
+		display: grid;
+		grid-template-columns: repeat(3, minmax(0, 1fr));
+		gap: 0.6rem;
+	}
+
+	.arc-card {
+		font-family: 'Rubik Mono One', sans-serif;
+		font-size: 0.9rem;
+		text-align: center;
+		padding: 0.8rem 0.4rem;
+		border-radius: 10px;
+		border: 1px solid var(--panel-border);
+		background: color-mix(in srgb, var(--surface) 88%, transparent);
+		transition:
+			transform 170ms ease,
+			border-color 170ms ease;
+	}
+
+	.arc-card:hover {
+		transform: scale(1.08);
+		border-color: var(--panel-hover);
+	}
+
+	.notes {
+		margin-top: 1rem;
+		padding: 1rem;
+		border-radius: 14px;
+		border: 1px dashed var(--panel-border);
+	}
+
+	.notes p {
+		color: var(--muted);
+		margin-bottom: 0;
+	}
+
+	@keyframes blink {
+		50% {
+			filter: brightness(1.2);
+		}
+	}
+
+	@media (max-width: 900px) {
+		.fusion-top {
+			grid-template-columns: 1fr;
+		}
+
+		.arcade-grid {
+			grid-template-columns: 1fr;
+		}
+	}
+</style>

@@ -1,7 +1,7 @@
 ---
 import HeroConsole from '../components/HeroConsole';
 import SiteLayout from '../layouts/SiteLayout.astro';
-import { getLatestPosts, getPageContentBySlug } from '../lib/wordpress';
+import { getLatestPosts, getPageContentBySlug, getPostPreviewText, getPostTitleText } from '../lib/wordpress';
 
 const [posts, aboutPage, contactPage] = await Promise.all([
 	getLatestPosts(4),
@@ -31,7 +31,7 @@ const contactPreview = contactPage?.text
 			</p>
 			<div class="buttons">
 				<a href="/posts">Read posts</a>
-				<a href="https://www.wesselwegerif.nl" target="_blank" rel="noreferrer">Current live site</a>
+				<a href="/about">About me</a>
 			</div>
 		</div>
 		<div class="hero-terminal">
@@ -39,19 +39,26 @@ const contactPreview = contactPage?.text
 		</div>
 	</section>
 
+	<section class="logo-showcase">
+		<div class="light-panel">
+			<p class="label">Logo spot (light mode panel)</p>
+			<p>Your logo can live here while the full site stays dark.</p>
+		</div>
+	</section>
+
 	<section class="card-grid">
-		<article class="card">
+		<a class="card card-link" href="/about">
 			<h2>{aboutPage?.title ?? 'About me'}</h2>
 			<p>{aboutPreview}</p>
-		</article>
-		<article class="card">
+		</a>
+		<a class="card card-link" href="/contact">
 			<h2>Contact</h2>
 			<p>{contactPreview}</p>
-		</article>
-		<article class="card">
+		</a>
+		<a class="card card-link" href="/style-lab">
 			<h2>Stack right now</h2>
 			<p>TypeScript, Astro, React, CSS animation, and API-driven architecture.</p>
-		</article>
+		</a>
 	</section>
 
 	<section class="latest">
@@ -65,9 +72,9 @@ const contactPreview = contactPage?.text
 					<article class="post">
 						<p class="post-source">{post.source === 'portfolio' ? 'From portfolio archive' : 'WordPress post'}</p>
 						<h3>
-							<a href={`/posts/${post.slug}`}>{post.title.rendered}</a>
+							<a href={`/posts/${post.slug}`}>{getPostTitleText(post)}</a>
 						</h3>
-						<p set:html={post.excerpt.rendered} />
+						<p>{getPostPreviewText(post, 180)}</p>
 					</article>
 				))
 			}
@@ -81,6 +88,7 @@ const contactPreview = contactPage?.text
 		grid-template-columns: 1.1fr 0.9fr;
 		gap: 1.5rem;
 		align-items: center;
+		animation: section-in 700ms ease;
 	}
 
 	.tag {
@@ -110,24 +118,26 @@ const contactPreview = contactPage?.text
 
 	.buttons a {
 		text-decoration: none;
-		border: 1px solid rgba(255, 255, 255, 0.2);
+		border: 1px solid var(--panel-border);
 		padding: 0.55rem 0.95rem;
 		border-radius: 10px;
+		background: var(--surface);
 	}
 
 	.buttons a:first-child {
-		background: linear-gradient(45deg, var(--accent), var(--accent-2));
-		color: #130727;
+		background: linear-gradient(45deg, var(--accent), var(--accent-2), var(--accent-3));
+		color: #05070f;
 		border: 0;
 		font-weight: 700;
 	}
 
 	.hero-terminal {
-		background: rgba(15, 11, 30, 0.8);
-		border: 1px solid rgba(255, 255, 255, 0.16);
+		background: var(--panel-bg);
+		border: 1px solid var(--panel-border);
 		border-radius: 16px;
 		padding: 1.2rem;
 		min-height: 220px;
+		box-shadow: 0 12px 30px rgba(3, 6, 18, 0.55);
 	}
 
 	:global(.hero-console) {
@@ -144,13 +154,26 @@ const contactPreview = contactPage?.text
 		display: grid;
 		grid-template-columns: repeat(3, minmax(0, 1fr));
 		gap: 1rem;
+		animation: section-in 950ms ease;
 	}
 
 	.card {
-		background: var(--surface);
-		border: 1px solid rgba(255, 255, 255, 0.1);
+		background: var(--panel-bg);
+		border: 1px solid var(--panel-border);
 		border-radius: 16px;
 		padding: 1rem;
+		transition:
+			transform 220ms ease,
+			border-color 220ms ease;
+	}
+
+	.card:hover {
+		transform: translateY(-4px);
+		border-color: var(--panel-hover);
+	}
+
+	.card-link {
+		text-decoration: none;
 	}
 
 	.card h2 {
@@ -165,6 +188,7 @@ const contactPreview = contactPage?.text
 
 	.latest {
 		margin-top: 2.5rem;
+		animation: section-in 1200ms ease;
 	}
 
 	.section-title {
@@ -184,10 +208,18 @@ const contactPreview = contactPage?.text
 	}
 
 	.post {
-		background: rgba(12, 9, 25, 0.82);
-		border: 1px solid rgba(255, 255, 255, 0.12);
+		background: var(--panel-bg);
+		border: 1px solid var(--panel-border);
 		border-radius: 14px;
 		padding: 1rem;
+		transition:
+			transform 220ms ease,
+			border-color 220ms ease;
+	}
+
+	.post:hover {
+		transform: translateX(4px);
+		border-color: var(--panel-hover);
 	}
 
 	.post h3 {
@@ -207,6 +239,40 @@ const contactPreview = contactPage?.text
 	:global(.post p) {
 		margin: 0;
 		color: var(--muted);
+	}
+
+	.logo-showcase {
+		margin-top: 1.8rem;
+		animation: section-in 850ms ease;
+	}
+
+	.light-panel {
+		background: linear-gradient(180deg, #ffffff, #f2f6ff);
+		color: #0f172d;
+		border-radius: 14px;
+		padding: 1rem 1.1rem;
+		border: 1px solid rgba(255, 255, 255, 0.8);
+	}
+
+	.light-panel .label {
+		font-family: ui-monospace, 'Cascadia Code', Consolas, monospace;
+		color: #27366a;
+		margin: 0 0 0.45rem;
+	}
+
+	.light-panel p:last-child {
+		margin: 0;
+	}
+
+	@keyframes section-in {
+		from {
+			opacity: 0;
+			transform: translateY(10px);
+		}
+		to {
+			opacity: 1;
+			transform: translateY(0);
+		}
 	}
 
 	@media (max-width: 900px) {
