@@ -89,6 +89,9 @@ const { title, description } = Astro.props;
 		--font-body: 'Cascadia Code', Consolas, 'Lucida Console', monospace;
 		--font-display: 'Press Start 2P', 'Cascadia Code', Consolas, monospace;
 		--heading: #b8ffd6;
+		--heading-letter-spacing: 0.05em;
+		--heading-line-height: 1.35;
+		--heading-word-spacing: 0.08em;
 		--cursor-dot: #e6fff0;
 		--cursor-dot-glow: rgba(137, 251, 180, 0.95);
 		--cursor-ring: rgba(137, 251, 180, 0.95);
@@ -122,6 +125,9 @@ const { title, description } = Astro.props;
 		--font-body: 'Segoe UI', 'Inter', Tahoma, sans-serif;
 		--font-display: 'Trebuchet MS', 'Segoe UI', sans-serif;
 		--heading: #2f58a2;
+		--heading-letter-spacing: 0.02em;
+		--heading-line-height: 1.2;
+		--heading-word-spacing: normal;
 		--cursor-dot: #ffffff;
 		--cursor-dot-glow: rgba(125, 249, 255, 0.95);
 		--cursor-ring: rgba(255, 93, 200, 0.95);
@@ -151,7 +157,9 @@ const { title, description } = Astro.props;
 	h2,
 	h3 {
 		font-family: var(--font-display);
-		letter-spacing: 0.02em;
+		letter-spacing: var(--heading-letter-spacing);
+		line-height: var(--heading-line-height);
+		word-spacing: var(--heading-word-spacing);
 		color: var(--heading);
 	}
 
