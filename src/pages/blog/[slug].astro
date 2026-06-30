@@ -1,51 +1,13 @@
 ---
-import SiteLayout from '../../layouts/SiteLayout.astro';
-import { getAllPosts, type WordPressPost } from '../../lib/wordpress';
+import { getAllPosts } from '../../lib/wordpress';
 
 export async function getStaticPaths() {
 	const posts = await getAllPosts();
 	return posts.map((post) => ({
 		params: { slug: post.slug },
-		props: { post },
 	}));
 }
 
-const { post } = Astro.props as { post: WordPressPost };
+const { slug } = Astro.params;
+return Astro.redirect(`/posts/${slug}`, 301);
 ---
-
-<SiteLayout title={`${post.title.rendered} | Wessel Wegerif`} description={`Blog post: ${post.title.rendered}`}>
-	<article class="post">
-		<p class="meta">{new Date(post.date).toLocaleDateString('en-GB')}</p>
-		<h1 set:html={post.title.rendered} />
-		<div class="content" set:html={post.content.rendered} />
-	</article>
-</SiteLayout>
-
-<style>
-	.post {
-		max-width: 760px;
-		margin: 0 auto;
-		padding: 1.2rem;
-		border-radius: 16px;
-		background: rgba(12, 9, 25, 0.82);
-		border: 1px solid rgba(255, 255, 255, 0.12);
-	}
-
-	.meta {
-		color: var(--accent);
-		font-family: ui-monospace, 'Cascadia Code', Consolas, monospace;
-	}
-
-	h1 {
-		text-wrap: balance;
-	}
-
-	:global(.content p) {
-		line-height: 1.75;
-		color: var(--muted);
-	}
-
-	:global(.content a) {
-		color: var(--accent);
-	}
-</style>

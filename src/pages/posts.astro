@@ -1,0 +1,73 @@
+---
+import SiteLayout from '../layouts/SiteLayout.astro';
+import { getAllPosts } from '../lib/wordpress';
+
+const posts = await getAllPosts();
+---
+
+<SiteLayout title="Posts | Wessel Wegerif" description="Development notes and creative work by Wessel.">
+	<section class="posts-list">
+		<h1>Posts</h1>
+		<p>
+			A unified feed of native WordPress posts and legacy portfolio items while migration is in
+			progress.
+		</p>
+		<div class="items">
+			{
+				posts.map((post) => (
+					<article>
+						<time datetime={post.date}>{new Date(post.date).toLocaleDateString('en-GB')}</time>
+						<p class="type">{post.source === 'portfolio' ? 'Portfolio archive' : 'Post'}</p>
+						<h2>
+							<a href={`/posts/${post.slug}`}>{post.title.rendered}</a>
+						</h2>
+						<div set:html={post.excerpt.rendered} />
+					</article>
+				))
+			}
+		</div>
+	</section>
+</SiteLayout>
+
+<style>
+	.posts-list > p {
+		color: var(--muted);
+	}
+
+	.items {
+		margin-top: 1rem;
+		display: grid;
+		gap: 0.9rem;
+	}
+
+	article {
+		padding: 1rem;
+		border-radius: 14px;
+		background: rgba(12, 9, 25, 0.82);
+		border: 1px solid rgba(255, 255, 255, 0.12);
+	}
+
+	article time {
+		color: var(--accent);
+		font-size: 0.9rem;
+	}
+
+	article .type {
+		margin: 0.25rem 0;
+		font-size: 0.8rem;
+		color: var(--accent-2);
+	}
+
+	article h2 {
+		margin: 0.4rem 0;
+	}
+
+	article h2 a {
+		text-decoration: none;
+	}
+
+	:global(article div p) {
+		margin: 0;
+		color: var(--muted);
+	}
+</style>

@@ -1,4 +1,6 @@
 ---
+import CursorTracker from '../components/CursorTracker';
+
 interface Props {
 	title: string;
 	description: string;
@@ -23,12 +25,13 @@ const { title, description } = Astro.props;
 			<a class="brand" href="/">Wessel Wegerif</a>
 			<nav>
 				<a href="/">Home</a>
-				<a href="/blog">Blog</a>
+				<a href="/posts">Posts</a>
 			</nav>
 		</header>
 		<main>
 			<slot />
 		</main>
+		<CursorTracker client:load />
 		<footer class="site-footer">
 			<p>Built with Astro + React. Powered by headless WordPress content.</p>
 		</footer>
@@ -60,6 +63,50 @@ const { title, description } = Astro.props;
 
 	a {
 		color: inherit;
+	}
+
+	:global(body.has-custom-cursor) {
+		cursor: none;
+	}
+
+	:global(body.has-custom-cursor a),
+	:global(body.has-custom-cursor button) {
+		cursor: none;
+	}
+
+	:global(.cursor-dot) {
+		position: fixed;
+		width: 8px;
+		height: 8px;
+		border-radius: 999px;
+		background: var(--accent);
+		z-index: 9999;
+		pointer-events: none;
+		mix-blend-mode: screen;
+	}
+
+	:global(.cursor-ring) {
+		position: fixed;
+		width: 32px;
+		height: 32px;
+		border-radius: 999px;
+		border: 1px solid var(--accent-2);
+		z-index: 9998;
+		pointer-events: none;
+	}
+
+	:global(.cursor-coordinates) {
+		position: fixed;
+		left: 0.75rem;
+		bottom: 0.75rem;
+		padding: 0.4rem 0.55rem;
+		border: 1px solid rgba(255, 255, 255, 0.15);
+		border-radius: 8px;
+		background: rgba(8, 5, 17, 0.7);
+		color: var(--accent);
+		font-family: ui-monospace, 'Cascadia Code', Consolas, monospace;
+		font-size: 0.8rem;
+		z-index: 9997;
 	}
 
 	.grid-overlay {
@@ -127,7 +174,15 @@ const { title, description } = Astro.props;
 	.site-footer {
 		width: min(1120px, 92vw);
 		margin: 0 auto;
-		padding: 0 0 2rem;
+		padding: 0 0 3.5rem;
 		color: var(--muted);
+	}
+
+	@media (pointer: coarse) {
+		:global(.cursor-dot),
+		:global(.cursor-ring),
+		:global(.cursor-coordinates) {
+			display: none;
+		}
 	}
 </style>

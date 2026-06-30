@@ -1,14 +1,25 @@
 ---
 import HeroConsole from '../components/HeroConsole';
 import SiteLayout from '../layouts/SiteLayout.astro';
-import { getLatestPosts } from '../lib/wordpress';
+import { getLatestPosts, getPageContentBySlug } from '../lib/wordpress';
 
-const posts = await getLatestPosts(3);
+const [posts, aboutPage, contactPage] = await Promise.all([
+	getLatestPosts(4),
+	getPageContentBySlug('about'),
+	getPageContentBySlug('contact'),
+]);
+
+const aboutPreview = aboutPage?.text
+	? `${aboutPage.text.slice(0, 220)}...`
+	: 'About page content is being prepared.';
+const contactPreview = contactPage?.text
+	? `${contactPage.text.slice(0, 220)}...`
+	: 'Contact details are being prepared.';
 ---
 
 <SiteLayout
 	title="Wessel Wegerif | Developer Portfolio"
-	description="Creative developer portfolio and blog by Wessel Wegerif."
+	description="Creative developer portfolio and posts by Wessel Wegerif."
 >
 	<section class="hero">
 		<div class="hero-copy">
@@ -19,7 +30,7 @@ const posts = await getLatestPosts(3);
 				This is my digital playground and professional home base.
 			</p>
 			<div class="buttons">
-				<a href="/blog">Read blog</a>
+				<a href="/posts">Read posts</a>
 				<a href="https://www.wesselwegerif.nl" target="_blank" rel="noreferrer">Current live site</a>
 			</div>
 		</div>
@@ -30,12 +41,12 @@ const posts = await getLatestPosts(3);
 
 	<section class="card-grid">
 		<article class="card">
-			<h2>What I do</h2>
-			<p>Frontend engineering, design systems, and creative web storytelling.</p>
+			<h2>{aboutPage?.title ?? 'About me'}</h2>
+			<p>{aboutPreview}</p>
 		</article>
 		<article class="card">
-			<h2>Available for</h2>
-			<p>Freelance projects, product teams, and custom portfolio experiences.</p>
+			<h2>Contact</h2>
+			<p>{contactPreview}</p>
 		</article>
 		<article class="card">
 			<h2>Stack right now</h2>
@@ -46,14 +57,15 @@ const posts = await getLatestPosts(3);
 	<section class="latest">
 		<div class="section-title">
 			<h2>Latest posts</h2>
-			<a href="/blog">View all</a>
+			<a href="/posts">View all</a>
 		</div>
 		<div class="posts">
 			{
 				posts.map((post) => (
 					<article class="post">
+						<p class="post-source">{post.source === 'portfolio' ? 'From portfolio archive' : 'WordPress post'}</p>
 						<h3>
-							<a href={`/blog/${post.slug}`}>{post.title.rendered}</a>
+							<a href={`/posts/${post.slug}`}>{post.title.rendered}</a>
 						</h3>
 						<p set:html={post.excerpt.rendered} />
 					</article>
@@ -180,6 +192,12 @@ const posts = await getLatestPosts(3);
 
 	.post h3 {
 		margin: 0 0 0.5rem;
+	}
+
+	.post-source {
+		margin: 0 0 0.35rem;
+		color: var(--accent);
+		font-size: 0.8rem;
 	}
 
 	.post h3 a {
