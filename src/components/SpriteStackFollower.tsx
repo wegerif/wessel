@@ -1,19 +1,14 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { defaultSpriteCarKey, getSpriteCarByKey, type SpriteCarKey } from '../lib/spriteCars';
+import { loadTuningForCar, spriteCarSelectionStorageKey } from '../lib/carTuning';
+import { defaultSpriteCarKey, getSpriteCarByKey, type CarHandlingConfig, type SpriteCarKey } from '../lib/spriteCars';
 
-const storageKey = 'sprite-car-selection';
-const speedStorageKey = 'sprite-car-speed';
-const steeringStorageKey = 'sprite-car-steering';
 const spriteSize = 16;
 const renderScale = 4;
 const stackStep = 3;
 const carWidth = spriteSize * renderScale;
 const footprintHeight = spriteSize * renderScale;
-const defaultSpeed = 100;
-const defaultSteering = 8;
-const rotationSmoothing = 0.22;
-const deadzonePx = 10;
 const spriteForwardAngleOffset = 0;
+const headlightBeamHeight = 90;
 
 type CarState = { x: number; y: number; frame: number; angle: number };
 type Particle = { id: number; x: number; y: number; dx: number; dy: number; life: number; size: number; color: string };
@@ -24,14 +19,12 @@ export default function SpriteStackFollower() {
 	const [state, setState] = useState<CarState>({ x: 40, y: 120, frame: 0, angle: 0 });
 	const [viewportWidth, setViewportWidth] = useState(1200);
 	const [viewportHeight, setViewportHeight] = useState(800);
-	const [speed, setSpeed] = useState(defaultSpeed);
-	const [steering, setSteering] = useState(defaultSteering);
 	const [spriteImage, setSpriteImage] = useState<HTMLImageElement | null>(null);
 	const [particles, setParticles] = useState<Particle[]>([]);
+	const [isDarkTheme, setIsDarkTheme] = useState(false);
 	const frameRef = useRef(0);
 	const canvasRef = useRef<HTMLCanvasElement | null>(null);
-	const speedRef = useRef(defaultSpeed);
-	const steeringRef = useRef(defaultSteering);
+	const tuningRef = useRef<CarHandlingConfig>(getSpriteCarByKey(defaultSpriteCarKey).handling);
 	const frameCountRef = useRef(getSpriteCarByKey(defaultSpriteCarKey).frames);
 	const particleIdRef = useRef(0);
 	const particlesRef = useRef<Particle[]>([]);
@@ -68,6 +61,7 @@ export default function SpriteStackFollower() {
 	useEffect(() => {
 		setViewportWidth(window.innerWidth);
 		setViewportHeight(window.innerHeight);
+		setIsDarkTheme(document.documentElement.getAttribute('data-theme') !== 'light');
 
 		function onResize() {
 			setViewportWidth(window.innerWidth);
@@ -76,54 +70,42 @@ export default function SpriteStackFollower() {
 
 		function onCarChange(event: Event) {
 			const key = (event as CustomEvent<SpriteCarKey>).detail;
-			setSelectedCar(getSpriteCarByKey(key).key);
+			const next = getSpriteCarByKey(key).key;
+			setSelectedCar(next);
+			tuningRef.current = loadTuningForCar(next);
 			spawnPoofAtCurrentCar();
 		}
 
-		function onSpeedChange(event: Event) {
-			const value = Number((event as CustomEvent<number>).detail);
-			if (Number.isFinite(value)) {
-				const clamped = Math.max(40, Math.min(300, value));
-				speedRef.current = clamped;
-				setSpeed(clamped);
+		function onTuningChange(event: Event) {
+			const detail = (event as CustomEvent<CarHandlingConfig>).detail;
+			if (!detail) {
+				return;
 			}
+			tuningRef.current = detail;
 		}
 
-		function onSteeringChange(event: Event) {
-			const value = Number((event as CustomEvent<number>).detail);
-			if (Number.isFinite(value)) {
-				const clamped = Math.max(2, Math.min(20, value));
-				steeringRef.current = clamped;
-				setSteering(clamped);
-			}
+		function onThemeChange() {
+			setIsDarkTheme(document.documentElement.getAttribute('data-theme') !== 'light');
 		}
 
-		const initialCar = getSpriteCarByKey(window.localStorage.getItem(storageKey) ?? defaultSpriteCarKey).key;
+		const themeObserver = new MutationObserver(onThemeChange);
+		themeObserver.observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
+
+		const initialCar = getSpriteCarByKey(
+			window.localStorage.getItem(spriteCarSelectionStorageKey) ?? defaultSpriteCarKey,
+		).key;
 		setSelectedCar(initialCar);
-		const savedSpeedRaw = window.localStorage.getItem(speedStorageKey);
-		const savedSpeed = savedSpeedRaw ? Number(savedSpeedRaw) : defaultSpeed;
-		if (Number.isFinite(savedSpeed)) {
-			const clampedSpeed = Math.max(40, Math.min(300, savedSpeed));
-			speedRef.current = clampedSpeed;
-			setSpeed(clampedSpeed);
-		}
-		const savedSteeringRaw = window.localStorage.getItem(steeringStorageKey);
-		const savedSteering = savedSteeringRaw ? Number(savedSteeringRaw) : defaultSteering;
-		if (Number.isFinite(savedSteering)) {
-			const clampedSteering = Math.max(2, Math.min(20, savedSteering));
-			steeringRef.current = clampedSteering;
-			setSteering(clampedSteering);
-		}
+		tuningRef.current = loadTuningForCar(initialCar);
+
 		window.addEventListener('resize', onResize);
 		window.addEventListener('sprite-car-change', onCarChange as EventListener);
-		window.addEventListener('sprite-car-speed-change', onSpeedChange as EventListener);
-		window.addEventListener('sprite-car-steering-change', onSteeringChange as EventListener);
+		window.addEventListener('sprite-car-tuning-change', onTuningChange as EventListener);
 
 		return () => {
 			window.removeEventListener('resize', onResize);
 			window.removeEventListener('sprite-car-change', onCarChange as EventListener);
-			window.removeEventListener('sprite-car-speed-change', onSpeedChange as EventListener);
-			window.removeEventListener('sprite-car-steering-change', onSteeringChange as EventListener);
+			window.removeEventListener('sprite-car-tuning-change', onTuningChange as EventListener);
+			themeObserver.disconnect();
 		};
 	}, []);
 
@@ -174,24 +156,52 @@ export default function SpriteStackFollower() {
 			const maxX = Math.max(0, viewportWidth - carWidth - 8);
 			const maxY = Math.max(0, viewportHeight - carVisualHeight - 10);
 			const carCenterX = x + carWidth / 2;
-			const carCenterY = y + footprintHeight / 2;
+			const carCenterY = y + (carVisualHeight - footprintHeight / 2);
 			const toMouseX = mouse.x - carCenterX;
 			const toMouseY = mouse.y - carCenterY;
 			const distanceToMouse = Math.hypot(toMouseX, toMouseY);
-			const directionX = distanceToMouse > 0.001 ? toMouseX / distanceToMouse : 0;
-			const directionY = distanceToMouse > 0.001 ? toMouseY / distanceToMouse : 0;
-			const isInsideDeadzone = distanceToMouse <= deadzonePx;
-			const desiredVx = isInsideDeadzone ? 0 : directionX * speedRef.current;
-			const desiredVy = isInsideDeadzone ? 0 : directionY * speedRef.current;
-			const blend = Math.min(1, steeringRef.current * dt);
-			vx += (desiredVx - vx) * blend;
-			vy += (desiredVy - vy) * blend;
-			if (Math.abs(vx) < 0.02) {
-				vx = 0;
+			const inDeadzone = distanceToMouse <= tuningRef.current.deadzone;
+			const targetAngle = distanceToMouse > 0.001 ? Math.atan2(toMouseY, toMouseX) + spriteForwardAngleOffset : angle;
+			const shortestDelta = normalizeAngle(targetAngle - angle);
+			const maxTurnStep = tuningRef.current.steering * dt;
+			const clampedTurn = Math.max(-maxTurnStep, Math.min(maxTurnStep, shortestDelta));
+			angle = normalizeAngle(angle + clampedTurn);
+
+			const forwardX = Math.cos(angle);
+			const forwardY = Math.sin(angle);
+			const sideX = -forwardY;
+			const sideY = forwardX;
+			let forwardSpeed = vx * forwardX + vy * forwardY;
+			let lateralSpeed = vx * sideX + vy * sideY;
+			const brakingLimitedSpeed = Math.sqrt(Math.max(0, 2 * tuningRef.current.acceleration * distanceToMouse));
+			let desiredForwardSpeed = Math.min(tuningRef.current.topSpeed, brakingLimitedSpeed);
+			if (inDeadzone) {
+				desiredForwardSpeed = Math.min(desiredForwardSpeed, Math.max(12, distanceToMouse * 8));
 			}
-			if (Math.abs(vy) < 0.02) {
-				vy = 0;
+			const accelerationStep = tuningRef.current.acceleration * dt;
+			if (forwardSpeed < desiredForwardSpeed) {
+				forwardSpeed = Math.min(desiredForwardSpeed, forwardSpeed + accelerationStep);
+			} else if (forwardSpeed > desiredForwardSpeed) {
+				forwardSpeed = Math.max(desiredForwardSpeed, forwardSpeed - accelerationStep);
 			}
+
+			const lateralDecay = Math.max(0, 1 - (2.8 + tuningRef.current.steering * 0.9) * dt);
+			lateralSpeed *= lateralDecay;
+			const targetGrip = Math.min(1, Math.max(0, 1 - distanceToMouse / Math.max(40, tuningRef.current.deadzone * 6)));
+			lateralSpeed *= 1 - targetGrip * 0.72;
+			if (inDeadzone) {
+				lateralSpeed *= Math.max(0, 1 - 6.8 * dt);
+			}
+
+			vx = forwardX * forwardSpeed + sideX * lateralSpeed;
+			vy = forwardY * forwardSpeed + sideY * lateralSpeed;
+			const combinedSpeed = Math.hypot(vx, vy);
+			if (combinedSpeed > tuningRef.current.topSpeed) {
+				const speedScale = tuningRef.current.topSpeed / combinedSpeed;
+				vx *= speedScale;
+				vy *= speedScale;
+			}
+
 			x += vx * dt;
 			y += vy * dt;
 
@@ -212,11 +222,17 @@ export default function SpriteStackFollower() {
 				vy = 0;
 			}
 
-			const targetAngle = distanceToMouse > 0.1 ? Math.atan2(toMouseY, toMouseX) + spriteForwardAngleOffset : angle;
-			const shortestDelta = normalizeAngle(targetAngle - angle);
-			angle = normalizeAngle(angle + shortestDelta * rotationSmoothing);
-			const velocity = Math.hypot(vx, vy);
-			frameFloat += Math.min(2, velocity * dt * 0.2);
+			const arrivalSnapRadius = Math.max(1.5, tuningRef.current.deadzone * 0.22);
+			if (distanceToMouse <= arrivalSnapRadius && Math.hypot(vx, vy) < 28) {
+				x = mouse.x - carWidth / 2;
+				y = mouse.y - (carVisualHeight - footprintHeight / 2);
+				x = Math.max(0, Math.min(maxX, x));
+				y = Math.max(12, Math.min(maxY, y));
+				vx = 0;
+				vy = 0;
+			}
+
+			frameFloat += Math.min(2, Math.hypot(vx, vy) * dt * 0.2);
 
 			setState({
 				x: Math.round(x),
@@ -295,10 +311,43 @@ export default function SpriteStackFollower() {
 			);
 			context.restore();
 		}
-	}, [carConfig.frames, carVisualHeight, carWidth, footprintHeight, spriteImage, state.angle]);
+	}, [carConfig.frames, carVisualHeight, spriteImage, state.angle]);
+
+	const headlightBeams = useMemo(() => {
+		if (!isDarkTheme) {
+			return [];
+		}
+
+		const centerX = carWidth / 2;
+		const centerY = carVisualHeight - footprintHeight / 2;
+		const baseLayerTopOffset = carVisualHeight - footprintHeight;
+		const cos = Math.cos(state.angle);
+		const sin = Math.sin(state.angle);
+
+		return carConfig.headlights.map((light, index) => {
+			const localX = light.x - centerX;
+			const localY = light.y + baseLayerTopOffset - centerY;
+			const rotatedX = localX * cos - localY * sin;
+			const rotatedY = localX * sin + localY * cos;
+			return {
+				id: `${carConfig.key}-${index}`,
+				x: state.x + centerX + rotatedX,
+				y: state.y + centerY + rotatedY - headlightBeamHeight / 2,
+			};
+		});
+	}, [carConfig.headlights, carConfig.key, carVisualHeight, isDarkTheme, state.angle, state.x, state.y]);
 
 	return (
 		<div className="sprite-follower" aria-hidden="true">
+			{headlightBeams.map((beam) => (
+				<div
+					key={beam.id}
+					className="sprite-headlight"
+					style={{
+						transform: `translate(${beam.x}px, ${beam.y}px) rotate(${state.angle}rad)`,
+					}}
+				></div>
+			))}
 			<div
 				className="sprite-car"
 				style={{

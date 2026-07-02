@@ -267,7 +267,7 @@ const { title, description } = Astro.props;
 		right: 0;
 		display: grid;
 		gap: 0.3rem;
-		width: 180px;
+		width: 230px;
 		padding: 0.5rem;
 		border-radius: 12px;
 		border: 1px solid var(--panel-border);
@@ -325,6 +325,25 @@ const { title, description } = Astro.props;
 		will-change: transform;
 		filter: drop-shadow(0 2px 2px rgba(0, 0, 0, 0.45));
 		z-index: 3001;
+	}
+
+	:global(.sprite-follower .sprite-headlight) {
+		position: fixed;
+		top: 0;
+		left: 0;
+		width: 170px;
+		height: 90px;
+		transform-origin: 0 50%;
+		pointer-events: none;
+		background: linear-gradient(
+			90deg,
+			rgba(255, 250, 205, 0.28) 0%,
+			rgba(255, 250, 205, 0.12) 45%,
+			rgba(255, 250, 205, 0) 100%
+		);
+		clip-path: polygon(0 50%, 100% 0, 100% 100%);
+		filter: blur(2px);
+		z-index: 3000;
 	}
 
 	:global(.sprite-follower .sprite-particle) {
