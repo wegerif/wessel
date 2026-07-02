@@ -9,6 +9,11 @@ const carWidth = spriteSize * renderScale;
 const footprintHeight = spriteSize * renderScale;
 const spriteForwardAngleOffset = 0;
 const headlightBeamHeight = 90;
+const boostMultiplier = 1.55;
+const boostAccelerationMultiplier = 1.35;
+const boostDrainPerSecond = 42;
+const boostRegenPerSecond = 26;
+const handbrakeTurnMultiplier = 1.8;
 
 type CarState = { x: number; y: number; frame: number; angle: number };
 type Particle = { id: number; x: number; y: number; dx: number; dy: number; life: number; size: number; color: string };
@@ -29,6 +34,7 @@ export default function SpriteStackFollower() {
 	const particleIdRef = useRef(0);
 	const particlesRef = useRef<Particle[]>([]);
 	const motionRef = useRef<MotionState>({ x: 40, y: 120, angle: 0, vx: 0, vy: 0, initialized: false });
+	const controlsRef = useRef({ handbrake: false, boost: false, boostCharge: 100 });
 
 	const carConfig = useMemo(() => getSpriteCarByKey(selectedCar), [selectedCar]);
 	const carVisualHeight = footprintHeight + (carConfig.frames - 1) * stackStep;
@@ -88,6 +94,30 @@ export default function SpriteStackFollower() {
 			setIsDarkTheme(document.documentElement.getAttribute('data-theme') !== 'light');
 		}
 
+		function onKeyDown(event: KeyboardEvent) {
+			if (event.code === 'Space') {
+				controlsRef.current.handbrake = true;
+				event.preventDefault();
+			}
+			if (event.code === 'ShiftLeft' || event.code === 'ShiftRight') {
+				controlsRef.current.boost = true;
+			}
+		}
+
+		function onKeyUp(event: KeyboardEvent) {
+			if (event.code === 'Space') {
+				controlsRef.current.handbrake = false;
+			}
+			if (event.code === 'ShiftLeft' || event.code === 'ShiftRight') {
+				controlsRef.current.boost = false;
+			}
+		}
+
+		function onWindowBlur() {
+			controlsRef.current.handbrake = false;
+			controlsRef.current.boost = false;
+		}
+
 		const themeObserver = new MutationObserver(onThemeChange);
 		themeObserver.observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
 
@@ -100,11 +130,17 @@ export default function SpriteStackFollower() {
 		window.addEventListener('resize', onResize);
 		window.addEventListener('sprite-car-change', onCarChange as EventListener);
 		window.addEventListener('sprite-car-tuning-change', onTuningChange as EventListener);
+		window.addEventListener('keydown', onKeyDown);
+		window.addEventListener('keyup', onKeyUp);
+		window.addEventListener('blur', onWindowBlur);
 
 		return () => {
 			window.removeEventListener('resize', onResize);
 			window.removeEventListener('sprite-car-change', onCarChange as EventListener);
 			window.removeEventListener('sprite-car-tuning-change', onTuningChange as EventListener);
+			window.removeEventListener('keydown', onKeyDown);
+			window.removeEventListener('keyup', onKeyUp);
+			window.removeEventListener('blur', onWindowBlur);
 			themeObserver.disconnect();
 		};
 	}, []);
@@ -161,9 +197,18 @@ export default function SpriteStackFollower() {
 			const toMouseY = mouse.y - carCenterY;
 			const distanceToMouse = Math.hypot(toMouseX, toMouseY);
 			const inDeadzone = distanceToMouse <= tuningRef.current.deadzone;
+			const handbrakeActive = controlsRef.current.handbrake;
+			const boostActive = controlsRef.current.boost && controlsRef.current.boostCharge > 1 && !inDeadzone;
+			if (boostActive) {
+				controlsRef.current.boostCharge = Math.max(0, controlsRef.current.boostCharge - boostDrainPerSecond * dt);
+			} else {
+				controlsRef.current.boostCharge = Math.min(100, controlsRef.current.boostCharge + boostRegenPerSecond * dt);
+			}
+			const effectiveTopSpeed = tuningRef.current.topSpeed * (boostActive ? boostMultiplier : 1);
+			const effectiveAcceleration = tuningRef.current.acceleration * (boostActive ? boostAccelerationMultiplier : 1);
 			const targetAngle = distanceToMouse > 0.001 ? Math.atan2(toMouseY, toMouseX) + spriteForwardAngleOffset : angle;
 			const shortestDelta = normalizeAngle(targetAngle - angle);
-			const maxTurnStep = tuningRef.current.steering * dt;
+			const maxTurnStep = tuningRef.current.steering * dt * (handbrakeActive ? handbrakeTurnMultiplier : 1);
 			const clampedTurn = Math.max(-maxTurnStep, Math.min(maxTurnStep, shortestDelta));
 			angle = normalizeAngle(angle + clampedTurn);
 
@@ -173,20 +218,30 @@ export default function SpriteStackFollower() {
 			const sideY = forwardX;
 			let forwardSpeed = vx * forwardX + vy * forwardY;
 			let lateralSpeed = vx * sideX + vy * sideY;
-			const brakingLimitedSpeed = Math.sqrt(Math.max(0, 2 * tuningRef.current.acceleration * distanceToMouse));
-			let desiredForwardSpeed = Math.min(tuningRef.current.topSpeed, brakingLimitedSpeed);
+			const brakingLimitedSpeed = Math.sqrt(Math.max(0, 2 * effectiveAcceleration * distanceToMouse));
+			let desiredForwardSpeed = Math.min(effectiveTopSpeed, brakingLimitedSpeed);
 			if (inDeadzone) {
 				desiredForwardSpeed = Math.min(desiredForwardSpeed, Math.max(12, distanceToMouse * 8));
 			}
-			const accelerationStep = tuningRef.current.acceleration * dt;
+			if (handbrakeActive) {
+				desiredForwardSpeed = Math.min(desiredForwardSpeed, Math.max(0, distanceToMouse * 2.9));
+			}
+			const accelerationStep = effectiveAcceleration * dt;
 			if (forwardSpeed < desiredForwardSpeed) {
 				forwardSpeed = Math.min(desiredForwardSpeed, forwardSpeed + accelerationStep);
 			} else if (forwardSpeed > desiredForwardSpeed) {
 				forwardSpeed = Math.max(desiredForwardSpeed, forwardSpeed - accelerationStep);
 			}
+			if (handbrakeActive) {
+				forwardSpeed = Math.max(0, forwardSpeed - accelerationStep * 1.8);
+			}
 
-			const lateralDecay = Math.max(0, 1 - (2.8 + tuningRef.current.steering * 0.9) * dt);
+			const lateralDecay = Math.max(0, 1 - (2.8 + tuningRef.current.steering * 0.9) * dt * (handbrakeActive ? 0.25 : 1));
 			lateralSpeed *= lateralDecay;
+			if (handbrakeActive && maxTurnStep > 0.0001) {
+				const steerFactor = clampedTurn / maxTurnStep;
+				lateralSpeed += steerFactor * effectiveTopSpeed * 0.9 * dt;
+			}
 			const targetGrip = Math.min(1, Math.max(0, 1 - distanceToMouse / Math.max(40, tuningRef.current.deadzone * 6)));
 			lateralSpeed *= 1 - targetGrip * 0.72;
 			if (inDeadzone) {
@@ -196,8 +251,9 @@ export default function SpriteStackFollower() {
 			vx = forwardX * forwardSpeed + sideX * lateralSpeed;
 			vy = forwardY * forwardSpeed + sideY * lateralSpeed;
 			const combinedSpeed = Math.hypot(vx, vy);
-			if (combinedSpeed > tuningRef.current.topSpeed) {
-				const speedScale = tuningRef.current.topSpeed / combinedSpeed;
+			const speedCap = effectiveTopSpeed * (handbrakeActive ? 1.08 : 1);
+			if (combinedSpeed > speedCap) {
+				const speedScale = speedCap / combinedSpeed;
 				vx *= speedScale;
 				vy *= speedScale;
 			}
@@ -230,6 +286,23 @@ export default function SpriteStackFollower() {
 				y = Math.max(12, Math.min(maxY, y));
 				vx = 0;
 				vy = 0;
+			}
+
+			if (boostActive && Math.random() < dt * 32) {
+				const rearX = x + carWidth / 2 - forwardX * 24;
+				const rearY = y + (carVisualHeight - footprintHeight / 2) - forwardY * 24;
+				const fireColors = ['#ffd36a', '#ff8a3d', '#5de2ff'];
+				const boostParticle: Particle = {
+					id: particleIdRef.current++,
+					x: rearX,
+					y: rearY,
+					dx: -forwardX * (60 + Math.random() * 70) + sideX * (Math.random() * 40 - 20),
+					dy: -forwardY * (60 + Math.random() * 70) + sideY * (Math.random() * 40 - 20),
+					life: 0.16 + Math.random() * 0.16,
+					size: 2 + Math.floor(Math.random() * 2),
+					color: fireColors[Math.floor(Math.random() * fireColors.length)],
+				};
+				particlesRef.current = [...particlesRef.current, boostParticle];
 			}
 
 			frameFloat += Math.min(2, Math.hypot(vx, vy) * dt * 0.2);

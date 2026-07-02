@@ -276,6 +276,30 @@ const { title, description } = Astro.props;
 		z-index: 10060;
 	}
 
+	:global(.car-preview) {
+		display: grid;
+		justify-items: center;
+		gap: 0.35rem;
+		padding: 0.3rem 0.2rem 0.45rem;
+		border-bottom: 1px solid var(--panel-border);
+		margin-bottom: 0.25rem;
+	}
+
+	:global(.car-preview-canvas) {
+		width: 140px;
+		height: 104px;
+		image-rendering: pixelated;
+		border-radius: 10px;
+		border: 1px solid var(--panel-border);
+		background: radial-gradient(circle at 50% 60%, rgba(125, 249, 255, 0.11), rgba(0, 0, 0, 0.12));
+	}
+
+	:global(.car-controls-hint) {
+		margin: 0;
+		font-size: 0.64rem;
+		color: var(--muted);
+	}
+
 	:global(.speed-control) {
 		display: grid;
 		gap: 0.25rem;

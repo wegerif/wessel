@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import {
 	defaultSpriteCarKey,
 	getCarHandlingByKey,
@@ -15,6 +15,13 @@ import {
 } from '../lib/carTuning';
 
 type CarTuning = CarHandlingConfig;
+const previewSpriteSize = 16;
+const previewRenderScale = 3;
+const previewStackStep = 2;
+const previewCarWidth = previewSpriteSize * previewRenderScale;
+const previewFootprintHeight = previewSpriteSize * previewRenderScale;
+const previewCanvasWidth = 140;
+const previewCanvasHeight = 104;
 
 function readSelectedCar(): SpriteCarKey {
 	const saved = window.localStorage.getItem(spriteCarSelectionStorageKey);
@@ -25,6 +32,8 @@ export default function CarSelector() {
 	const [open, setOpen] = useState(false);
 	const [selected, setSelected] = useState<SpriteCarKey>(defaultSpriteCarKey);
 	const [tuning, setTuning] = useState<CarTuning>(() => getCarHandlingByKey(defaultSpriteCarKey));
+	const previewCanvasRef = useRef<HTMLCanvasElement | null>(null);
+	const previewFrameRef = useRef(0);
 
 	useEffect(() => {
 		const current = readSelectedCar();
@@ -49,6 +58,66 @@ export default function CarSelector() {
 	}, []);
 
 	const selectedLabel = useMemo(() => getSpriteCarByKey(selected).label, [selected]);
+	const selectedCarConfig = useMemo(() => getSpriteCarByKey(selected), [selected]);
+
+	useEffect(() => {
+		if (!open || !previewCanvasRef.current) {
+			return;
+		}
+
+		const canvas = previewCanvasRef.current;
+		const context = canvas.getContext('2d');
+		if (!context) {
+			return;
+		}
+		const ctx = context;
+
+		const image = new Image();
+		let angle = 0;
+		let ready = false;
+		image.src = selectedCarConfig.src;
+		image.onload = () => {
+			ready = true;
+		};
+
+		function draw() {
+			ctx.clearRect(0, 0, canvas.width, canvas.height);
+			ctx.imageSmoothingEnabled = false;
+			if (ready) {
+				angle += 0.016;
+				const carVisualHeight = previewFootprintHeight + (selectedCarConfig.frames - 1) * previewStackStep;
+				const centerX = canvas.width / 2;
+				const centerY = canvas.height / 2 + 4;
+				for (let layer = 0; layer < selectedCarConfig.frames; layer += 1) {
+					const sourceX = layer * previewSpriteSize;
+					const drawY = centerY - carVisualHeight / 2 + (carVisualHeight - previewFootprintHeight - layer * previewStackStep);
+					const layerCenterY = drawY + previewFootprintHeight / 2;
+
+					ctx.save();
+					ctx.translate(centerX, layerCenterY);
+					ctx.rotate(angle);
+					ctx.drawImage(
+						image,
+						sourceX,
+						0,
+						previewSpriteSize,
+						previewSpriteSize,
+						-previewCarWidth / 2,
+						-previewFootprintHeight / 2,
+						previewCarWidth,
+						previewFootprintHeight,
+					);
+					ctx.restore();
+				}
+			}
+			previewFrameRef.current = window.requestAnimationFrame(draw);
+		}
+
+		previewFrameRef.current = window.requestAnimationFrame(draw);
+		return () => {
+			window.cancelAnimationFrame(previewFrameRef.current);
+		};
+	}, [open, selectedCarConfig.frames, selectedCarConfig.src]);
 
 	function chooseCar(next: SpriteCarKey) {
 		setSelected(next);
@@ -72,13 +141,22 @@ export default function CarSelector() {
 			</button>
 			{open ? (
 				<div className="car-menu">
+					<div className="car-preview">
+						<canvas
+							ref={previewCanvasRef}
+							className="car-preview-canvas"
+							width={previewCanvasWidth}
+							height={previewCanvasHeight}
+						></canvas>
+						<p className="car-controls-hint">Space = handbrake · Shift = boost</p>
+					</div>
 					<div className="speed-control">
 						<label htmlFor="car-speed">Top speed: {Math.round(tuning.topSpeed)}px/s</label>
 						<input
 							id="car-speed"
 							type="range"
-							min={40}
-							max={300}
+							min={30}
+							max={500}
 							step={10}
 							value={tuning.topSpeed}
 							onChange={(event) =>
@@ -94,7 +172,7 @@ export default function CarSelector() {
 						<input
 							id="car-acceleration"
 							type="range"
-							min={60}
+							min={30}
 							max={520}
 							step={10}
 							value={tuning.acceleration}
@@ -111,8 +189,8 @@ export default function CarSelector() {
 						<input
 							id="car-steering"
 							type="range"
-							min={2}
-							max={20}
+							min={1.5}
+							max={25}
 							step={0.5}
 							value={tuning.steering}
 							onChange={(event) =>
