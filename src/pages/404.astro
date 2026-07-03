@@ -1,0 +1,62 @@
+---
+import SiteLayout from '../layouts/SiteLayout.astro';
+---
+
+<SiteLayout title="404 | Wessel Wegerif" description="Houston, we have a problem">
+	<section class="not-found">
+		<p class="code">404</p>
+		<h1>Oepsie. Wrong place.</h1>
+		<p>
+			Of jij hebt ergens op geklikt dat niet bestaat, of ik heb een foutje gemaakt.
+			Oepsie.
+		</p>
+		<div class="actions">
+			<a href="/">Take me home</a>
+			<a href="/posts">Open posts</a>
+		</div>
+	</section>
+</SiteLayout>
+
+<style>
+	.not-found {
+		max-width: 760px;
+		margin: 4rem auto;
+		padding: 2rem;
+		border-radius: 18px;
+		border: 1px solid var(--panel-border);
+		background: var(--panel-bg);
+		text-align: center;
+	}
+
+	.code {
+		margin: 0;
+		font-size: clamp(3rem, 10vw, 6rem);
+		color: var(--accent);
+		font-family: ui-monospace, 'Cascadia Code', Consolas, monospace;
+	}
+
+	h1 {
+		margin: 0.3rem 0 0.8rem;
+	}
+
+	p {
+		color: var(--muted);
+		line-height: 1.7;
+	}
+
+	.actions {
+		display: flex;
+		gap: 0.8rem;
+		justify-content: center;
+		flex-wrap: wrap;
+		margin-top: 1.2rem;
+	}
+
+	.actions a {
+		text-decoration: none;
+		padding: 0.55rem 0.95rem;
+		border-radius: 10px;
+		border: 1px solid var(--panel-border);
+		background: var(--surface);
+	}
+</style>

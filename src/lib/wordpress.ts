@@ -1,3 +1,5 @@
+import localPortfolioPosts from '../data/localPortfolioPosts.json';
+
 export type WordPressPost = {
 	id: number;
 	date: string;
@@ -23,6 +25,9 @@ export type SitePageContent = {
 };
 
 const apiBase = import.meta.env.WORDPRESS_API_URL ?? 'https://www.wesselwegerif.nl/wp-json/wp/v2';
+const includeLocalPortfolio =
+	(import.meta.env.WORDPRESS_INCLUDE_LOCAL_PORTFOLIO ?? 'true').toLowerCase() === 'true';
+const excludedPostSlugs = new Set(['dat-ging-niet-helemaal-goed']);
 const configuredCacheTtl = Number(import.meta.env.WORDPRESS_CACHE_TTL_MS ?? 120000);
 const wordpressCacheTtlMs = Number.isFinite(configuredCacheTtl) && configuredCacheTtl >= 0 ? configuredCacheTtl : 120000;
 const responseCache = new Map<string, { expiresAt: number; value: unknown }>();
@@ -120,9 +125,37 @@ async function getNativePosts(limit = 100): Promise<SitePost[]> {
 	return wpFetch<WordPressPost[]>(`/posts?per_page=${limit}&orderby=date&order=desc&status=publish`);
 }
 
+function getLocalPortfolioFallback(limit = 100): SitePost[] {
+	if (!includeLocalPortfolio) {
+		return [];
+	}
+
+	return (localPortfolioPosts as WordPressPost[]).slice(0, limit);
+}
+
+function dedupePostsBySlug(posts: SitePost[]): SitePost[] {
+	const bySlug = new Map<string, SitePost>();
+	for (const post of posts) {
+		const existing = bySlug.get(post.slug);
+		if (!existing) {
+			bySlug.set(post.slug, post);
+			continue;
+		}
+
+		const existingDate = new Date(existing.date).getTime();
+		const currentDate = new Date(post.date).getTime();
+		if (currentDate >= existingDate) {
+			bySlug.set(post.slug, post);
+		}
+	}
+
+	return [...bySlug.values()];
+}
+
 export async function getAllPosts(): Promise<SitePost[]> {
-	const posts = await getNativePosts();
-	return sortByDateDesc(posts);
+	const [posts, fallbackPosts] = await Promise.all([getNativePosts(), getLocalPortfolioFallback()]);
+	const mergedPosts = dedupePostsBySlug([...posts, ...fallbackPosts]);
+	return sortByDateDesc(mergedPosts.filter((post) => !excludedPostSlugs.has(post.slug)));
 }
 
 export async function getLatestPosts(limit = 6): Promise<SitePost[]> {

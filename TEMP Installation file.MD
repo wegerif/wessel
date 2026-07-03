@@ -38,6 +38,7 @@ Create `.env` (optional, but recommended):
 ```env
 WORDPRESS_API_URL=https://www.wesselwegerif.nl/wp-json/wp/v2
 WORDPRESS_CACHE_TTL_MS=120000
+WORDPRESS_INCLUDE_LOCAL_PORTFOLIO=true
 ```
 
 Run local dev server:
@@ -83,6 +84,7 @@ You still keep a running WordPress installation for editing content.
 In this project, `src/lib/wordpress.ts` currently reads:
 - `posts` (blog/project entries)
 - `pages` for `about` and `contact`
+- local fallback portfolio posts from `src/data/localPortfolioPosts.json` (toggle with `WORDPRESS_INCLUDE_LOCAL_PORTFOLIO`)
 
 ------------------------------------------------------------
 4) Converting old portfolio items to normal Posts
